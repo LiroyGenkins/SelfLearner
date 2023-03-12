@@ -44,9 +44,18 @@ class Robot:
         while 1:
             self._set_movement(ROBOT_SPEED, 0, 0)
 
-            print(self.sensor.left_sector.status, self.sensor.mid_sector.status, self.sensor.right_sector.status)
+            states = [self.sensor.left_sector.status, self.sensor.mid_sector.status, self.sensor.right_sector.status]
+            print(states)
+
+            if any(map(lambda x: x.value, states)):
+                # Нечёткая логика начинается здесь
+                ...
+            else:
+                # Тут чёткая наводка на цель
+                ...
 
             distance = self.sensor.min_dist
+            print(distance)
             if (not np.isnan(distance)) and (distance < ROBOT_STOP_DISTANCE):
                 self._set_movement(0, 0, 0)
                 break
