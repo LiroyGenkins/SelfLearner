@@ -1,8 +1,5 @@
 from dataclasses import dataclass
 from enum import Enum
-
-from zmqRemoteApi import RemoteAPIClient
-
 from threading import Thread
 from time import sleep
 
@@ -10,6 +7,7 @@ import numpy as np
 from numpy import NaN
 
 from constants import *
+from zmqRemoteApi import RemoteAPIClient
 
 
 @dataclass
@@ -115,8 +113,8 @@ class Sensor:
                 dists = self.sim.unpackTable(dist_signal)
                 dists = [d if d != 0 else NaN for d in dists]
             else:
-                absolute_coords_2d = [NaN] * SENSOR_NUM_POINTS
-                relative_coords_2d = [NaN] * SENSOR_NUM_POINTS
+                absolute_coords_2d = [[NaN, NaN]] * SENSOR_NUM_POINTS
+                relative_coords_2d = [[NaN, NaN]] * SENSOR_NUM_POINTS
                 dists = [NaN] * SENSOR_NUM_POINTS
 
             for i in range(SENSOR_NUM_POINTS):
