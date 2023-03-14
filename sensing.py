@@ -155,7 +155,13 @@ class Navigator(Sensor):
 
     def __init__(self):
         def get_target_side():
-            return ...
+            robot_handle = self.sim.getObject('/' + ROBOT_NAME)
+            target_handle = self.sim.getObject('/' + TARGET_NAME)
+            coords = self.sim.getObjectPosition(target_handle, robot_handle)
+            if coords[0] < 0:
+                return self.TargetSide.left
+            else:
+                return self.TargetSide.right
 
         super().__init__()
 

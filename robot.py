@@ -2,7 +2,7 @@ import time
 import numpy as np
 from zmqRemoteApi import RemoteAPIClient
 
-from sensing import Sensor
+from sensing import Navigator
 
 from constants import *
 
@@ -13,7 +13,7 @@ class Robot:
         self.name = robot_name
         self.sim = sim
 
-        self.sensor = Sensor()
+        self.navigator = Navigator()
 
     def _set_movement(self, forward_back_vel, left_right_vel, rotation_vel):
         """
@@ -44,9 +44,11 @@ class Robot:
         while 1:
             self._set_movement(ROBOT_SPEED, 0, 0)
 
-            print(self.sensor.left_sector.status, self.sensor.mid_sector.status, self.sensor.right_sector.status)
-
-            distance = self.sensor.min_dist
+            # print(self.navigator.left_sector.status,
+            #       self.navigator.mid_sector.status,
+            #       self.navigator.right_sector.status)
+            print(self.navigator.target_side)
+            distance = self.navigator.min_dist
             if (not np.isnan(distance)) and (distance < ROBOT_STOP_DISTANCE):
                 self._set_movement(0, 0, 0)
                 break
