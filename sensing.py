@@ -57,15 +57,6 @@ class SensorSector:
         self.min_dist = min_dist
 
 
-class Target:
-    class TargetSide(Enum):
-        right = 0
-        left = 1
-
-    def __init__(self):
-        ...
-
-
 class Sensor:
     def __init__(self):
         def mid_sector_angles():
@@ -158,5 +149,14 @@ class Sensor:
 
 
 class Navigator(Sensor):
+    class TargetSide(Enum):
+        right = 0
+        left = 1
+
     def __init__(self):
+        def get_target_side():
+            return ...
+
         super().__init__()
+
+        self.target_side = get_target_side()
