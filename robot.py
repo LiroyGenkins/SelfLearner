@@ -2,7 +2,7 @@ import time
 import numpy as np
 from zmqRemoteApi import RemoteAPIClient
 
-from sensor import Sensor
+from sensing import Sensor
 
 from constants import *
 
@@ -57,5 +57,5 @@ if __name__ == "__main__":
     sim = client.getObject('sim')
     sim.startSimulation()
 
-    robot = Robot(sim, 'youBot')
+    robot = Robot(sim, ROBOT_NAME)
     robot.start()

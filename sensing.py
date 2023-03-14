@@ -23,9 +23,9 @@ class SensorPoint:
 class SensorSector:
     class Status(Enum):
         empty = 0
-        close = 1
-        normal = 2
-        far = 3
+        far = 1
+        medium = 2
+        close = 3
 
     points: list[SensorPoint] = []
 
@@ -50,11 +50,20 @@ class SensorSector:
         elif 0 <= min_dist <= 2:
             self._status = self.Status.close
         elif 1 < min_dist <= 4:
-            self._status = self.Status.normal
+            self._status = self.Status.medium
         elif 4 < min_dist <= 5:
             self._status = self.Status.far
 
         self.min_dist = min_dist
+
+
+class Target:
+    class TargetSide(Enum):
+        right = 0
+        left = 1
+
+    def __init__(self):
+        ...
 
 
 class Sensor:
@@ -146,3 +155,8 @@ class Sensor:
                 [self._left_sector.min_dist, self._mid_sector.min_dist, self._right_sector.min_dist])
 
             sleep(SENSOR_UPDATE_PERIOD)
+
+
+class Navigator(Sensor):
+    def __init__(self):
+        super().__init__()
