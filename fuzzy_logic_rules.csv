@@ -1,0 +1,129 @@
+target_side,left,mid,right,turn
+right,empty,empty,empty,small right
+right,empty,empty,far,small right
+right,empty,empty,medium,small right
+right,empty,empty,close,small left
+right,empty,far,empty,small right
+right,empty,far,far,small left
+right,empty,far,medium,small left
+right,empty,far,close,small left
+right,empty,medium,empty,right
+right,empty,medium,far,left
+right,empty,medium,medium,left
+right,empty,medium,close,left
+right,empty,close,empty,big right
+right,empty,close,far,big left
+right,empty,close,medium,big left
+right,empty,close,close,big left
+right,far,empty,empty,small right
+right,far,empty,far,small right
+right,far,empty,medium,small right
+right,far,empty,close,small left
+right,far,far,empty,small right
+right,far,far,far,small right
+right,far,far,medium,small right
+right,far,far,close,small left
+right,far,medium,empty,right
+right,far,medium,far,right
+right,far,medium,medium,left
+right,far,medium,close,left
+right,far,close,empty,big right
+right,far,close,far,big right
+right,far,close,medium,big left
+right,far,close,close,big left
+right,medium,empty,empty,right
+right,medium,empty,far,small right
+right,medium,empty,medium,small right
+right,medium,empty,close,small left
+right,medium,far,empty,small right
+right,medium,far,far,small right
+right,medium,far,medium,small right
+right,medium,far,close,small left
+right,medium,medium,empty,right
+right,medium,medium,far,right
+right,medium,medium,medium,right
+right,medium,medium,close,left
+right,medium,close,empty,big right
+right,medium,close,far,big right
+right,medium,close,medium,big right
+right,medium,close,close,big left
+right,close,empty,empty,small right
+right,close,empty,far,small right
+right,close,empty,medium,small right
+right,close,empty,close,small right
+right,close,far,empty,small right
+right,close,far,far,small right
+right,close,far,medium,small right
+right,close,far,close,small right
+right,close,medium,empty,right
+right,close,medium,far,right
+right,close,medium,medium,right
+right,close,medium,close,big right
+right,close,close,empty,big right
+right,close,close,far,big right
+right,close,close,medium,big right
+right,close,close,close,big right
+left,empty,empty,empty,small left
+left,empty,empty,far,small left
+left,empty,empty,medium,small left
+left,empty,empty,close,small left
+left,empty,far,empty,small left
+left,empty,far,far,small left
+left,empty,far,medium,small left
+left,empty,far,close,small left
+left,empty,medium,empty,left
+left,empty,medium,far,left
+left,empty,medium,medium,left
+left,empty,medium,close,left
+left,empty,close,empty,big left
+left,empty,close,far,big left
+left,empty,close,medium,big left
+left,empty,close,close,big left
+left,far,empty,empty,small left
+left,far,empty,far,small left
+left,far,empty,medium,small left
+left,far,empty,close,small left
+left,far,far,empty,small left
+left,far,far,far,small left
+left,far,far,medium,small left
+left,far,far,close,small left
+left,far,medium,empty,left
+left,far,medium,far,left
+left,far,medium,medium,left
+left,far,medium,close,left
+left,far,close,empty,big right
+left,far,close,far,big left
+left,far,close,medium,big left
+left,far,close,close,big left
+left,medium,empty,empty,small left
+left,medium,empty,far,small left
+left,medium,empty,medium,small left
+left,medium,empty,close,small left
+left,medium,far,empty,small left
+left,medium,far,far,small left
+left,medium,far,medium,small left
+left,medium,far,close,small left
+left,medium,medium,empty,right
+left,medium,medium,far,left
+left,medium,medium,medium,left
+left,medium,medium,close,left
+left,medium,close,empty,big right
+left,medium,close,far,big left
+left,medium,close,medium,big left
+left,medium,close,close,big left
+left,close,empty,empty,small right
+left,close,empty,far,small right
+left,close,empty,medium,small right
+left,close,empty,close,small left
+left,close,far,empty,small right
+left,close,far,far,small right
+left,close,far,medium,small left
+left,close,far,close,small left
+left,close,medium,empty,right
+left,close,medium,far,right
+left,close,medium,medium,left
+left,close,medium,close,left
+left,close,close,empty,big right
+left,close,close,far,big right
+left,close,close,medium,big right
+left,close,close,close,big left
