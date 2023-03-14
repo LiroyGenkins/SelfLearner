@@ -53,7 +53,8 @@
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
-      <option name="SDK_HOME" value="C:\proekty\Python\SelfLearner\venv\Scripts\python.exe" />
+      <option name="SDK_HOME" value="C:\Users\ms199\OneDrive\Desktop\CoppeliaSim\SelfLearner\venv\Scripts\python.exe" />
+      <option name="SDK_NAME" value="Python 3.10 (SelfLearner)" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
@@ -183,10 +184,5 @@
     <MESSAGE value="Приведение выбора пути в Дейкстре в нормальный вид" />
     <MESSAGE value="Финальный фикс движения по Дейкстре + завершённость, но с ним проблемы" />
     <option name="LAST_COMMIT_MESSAGE" value="Финальный фикс движения по Дейкстре + завершённость, но с ним проблемы" />
-  </component>
-  <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/LabirinthFollower$robot.coverage" NAME="robot Coverage Results" MODIFIED="1670699973290" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/SelfLearner$robot.coverage" NAME="robot Coverage Results" MODIFIED="1678650731205" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/scene_computings_py$robot.coverage" NAME="robot Coverage Results" MODIFIED="1676142760790" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
