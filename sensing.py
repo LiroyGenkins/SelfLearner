@@ -6,8 +6,13 @@ from time import sleep
 import numpy as np
 from numpy import NaN
 
-from constants import *
+import constants as const
 from zmqRemoteApi import RemoteAPIClient
+
+
+class TargetSide(IntEnum):
+    right = 0
+    left = 1
 
 
 @dataclass
@@ -57,15 +62,30 @@ class SensorSector:
         self.min_dist = min_dist
 
 
-class Sensor:
+class Navigator:
     def __init__(self):
         def mid_sector_angles():
-            left = np.arccos((SENSOR_MID_SECTOR_WIDTH / 2) / SENSOR_MAX_DIST)
+            """
+            Расчёт граничных углов среднего сектора для определения граничных
+            точек на максимальной дистанции видимости лидара
+
+            Returns
+            -------
+            left : float
+                Левый угол
+            right : float
+                Правый угол
+            """
+            left = np.arccos((const.LIDAR_MID_SECTOR_WIDTH / 2) / const.LIDAR_MAX_DIST)
             right = np.pi - left
             return left, right
 
         client = RemoteAPIClient()
-        self.sim = client.getObject('sim')
+        self._sim = client.getObject('sim')
+        self._robot_handle = self._sim.getObject('/' + const.ROBOT_NAME)
+        self._target_handle = self._sim.getObject('/' + const.TARGET_NAME)
+
+        self._target_side = NaN
 
         self._left_sector = SensorSector()
         self._mid_sector = SensorSector()
@@ -73,7 +93,10 @@ class Sensor:
         self._mid_sector_left_angle, self._mid_sector_right_angle = mid_sector_angles()
         self.min_dist = NaN
 
-        self._sensor_controller = Thread(target=self._monitor_sensor, daemon=True, name="Sensor Monitor")
+        #: Отдельный тред для постоянного получения данных о расположении цели и наличии препятствий
+        self._sensor_controller = Thread(target=self._monitor_sensors,
+                                         daemon=True,
+                                         name="Sensor Monitor")
         self._sensor_controller.start()
 
     @property
@@ -88,9 +111,14 @@ class Sensor:
     def right_sector(self):
         return self._right_sector
 
-    def _monitor_sensor(self):
-        """Получение данных с датчика.
-        Заполнение секторов сенсора точками.
+    @property
+    def target_side(self):
+        return self._target_side
+
+    def _monitor_sensors(self):
+        """Получение данных с датчиков.
+        Заполнение секторов лидара точками.
+        Определение стороны, с которой находится цель.
         Данные обновляются раз в UPDATE_RATE секунд в фоновом режиме
         """
         while True:
@@ -98,26 +126,26 @@ class Sensor:
             mid_sector_points = []
             right_sector_points = []
 
-            result = bool(self.sim.getInt32Signal("r"))
+            result = bool(self._sim.getInt32Signal("r"))
 
             if result:
-                point_abs_signal = self.sim.getStringSignal("pointDataAbs")
-                points = self.sim.unpackTable(point_abs_signal)
+                point_abs_signal = self._sim.getStringSignal("pointDataAbs")
+                points = self._sim.unpackTable(point_abs_signal)
                 absolute_coords_2d = [[pt[0], pt[1]] if pt != {} else [NaN, NaN] for pt in points]
 
-                point_rel_signal = self.sim.getStringSignal("pointDataRel")
-                points = self.sim.unpackTable(point_rel_signal)
+                point_rel_signal = self._sim.getStringSignal("pointDataRel")
+                points = self._sim.unpackTable(point_rel_signal)
                 relative_coords_2d = [pt if pt != [0, 0] else [NaN, NaN] for pt in points]
 
-                dist_signal = self.sim.getStringSignal("distData")
-                dists = self.sim.unpackTable(dist_signal)
+                dist_signal = self._sim.getStringSignal("distData")
+                dists = self._sim.unpackTable(dist_signal)
                 dists = [d if d != 0 else NaN for d in dists]
             else:
-                absolute_coords_2d = [[NaN, NaN]] * SENSOR_NUM_POINTS
-                relative_coords_2d = [[NaN, NaN]] * SENSOR_NUM_POINTS
-                dists = [NaN] * SENSOR_NUM_POINTS
+                absolute_coords_2d = [[NaN, NaN]] * const.LIDAR_NUM_POINTS
+                relative_coords_2d = [[NaN, NaN]] * const.LIDAR_NUM_POINTS
+                dists = [NaN] * const.LIDAR_NUM_POINTS
 
-            for i in range(SENSOR_NUM_POINTS):
+            for i in range(const.LIDAR_NUM_POINTS):
                 point = SensorPoint(absolute_coords_2d[i][0],
                                     absolute_coords_2d[i][1],
                                     relative_coords_2d[i][0],
@@ -125,9 +153,9 @@ class Sensor:
                                     dists[i],
                                     i * np.pi / 180)
                 if not np.isnan(point.x_rel):
-                    if point.x_rel < -SENSOR_MID_SECTOR_WIDTH / 2:
+                    if point.x_rel < -const.LIDAR_MID_SECTOR_WIDTH / 2:
                         left_sector_points.append(point)
-                    elif -SENSOR_MID_SECTOR_WIDTH / 2 <= point.x_rel <= SENSOR_MID_SECTOR_WIDTH / 2:
+                    elif -const.LIDAR_MID_SECTOR_WIDTH / 2 <= point.x_rel <= const.LIDAR_MID_SECTOR_WIDTH / 2:
                         mid_sector_points.append(point)
                     else:
                         right_sector_points.append(point)
@@ -145,24 +173,10 @@ class Sensor:
             self.min_dist = np.nanmin(
                 [self._left_sector.min_dist, self._mid_sector.min_dist, self._right_sector.min_dist])
 
-            sleep(SENSOR_UPDATE_PERIOD)
-
-
-class Navigator(Sensor):
-    class TargetSide(IntEnum):
-        right = 0
-        left = 1
-
-    def __init__(self):
-        def get_target_side():
-            robot_handle = self.sim.getObject('/' + ROBOT_NAME)
-            target_handle = self.sim.getObject('/' + TARGET_NAME)
-            coords = self.sim.getObjectPosition(target_handle, robot_handle)
-            if coords[0] < 0:
-                return self.TargetSide.left
+            target_coords = self._sim.getObjectPosition(self._target_handle, self._robot_handle)
+            if target_coords[1] > 0:
+                self._target_side = TargetSide.left
             else:
-                return self.TargetSide.right
+                self._target_side = TargetSide.right
 
-        super().__init__()
-
-        self.target_side = get_target_side()
+            sleep(const.SENSORS_UPDATE_PERIOD)
