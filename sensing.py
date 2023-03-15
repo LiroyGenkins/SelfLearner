@@ -85,7 +85,7 @@ class Navigator:
         self._robot_handle = self._sim.getObject('/' + const.ROBOT_NAME)
         self._target_handle = self._sim.getObject('/' + const.TARGET_NAME)
 
-        self._target_side = NaN
+        self._target_side = self._get_target_position()
 
         self._left_sector = SensorSector()
         self._mid_sector = SensorSector()
@@ -114,6 +114,13 @@ class Navigator:
     @property
     def target_side(self):
         return self._target_side
+
+    def _get_target_position(self):
+        target_coords = self._sim.getObjectPosition(self._target_handle, self._robot_handle)
+        if target_coords[1] > 0:
+            return TargetSide.left
+        else:
+            return TargetSide.right
 
     def _monitor_sensors(self):
         """Получение данных с датчиков.
@@ -173,10 +180,6 @@ class Navigator:
             self.min_dist = np.nanmin(
                 [self._left_sector.min_dist, self._mid_sector.min_dist, self._right_sector.min_dist])
 
-            target_coords = self._sim.getObjectPosition(self._target_handle, self._robot_handle)
-            if target_coords[1] > 0:
-                self._target_side = TargetSide.left
-            else:
-                self._target_side = TargetSide.right
+            self._target_side = self._get_target_position()
 
             sleep(const.SENSORS_UPDATE_PERIOD)

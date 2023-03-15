@@ -63,12 +63,12 @@ class Robot:
                       self._navigator.mid_sector.status,
                       self._navigator.right_sector.status]
             # print(states)
-            # print(self._planner.make_decision(self._navigator.target_side,
-            #                                   self._navigator.left_sector.status,
-            #                                   self._navigator.mid_sector.status,
-            #                                   self._navigator.right_sector.status))
+            print(self._planner.make_decision(self._navigator.target_side,
+                                              self._navigator.left_sector.status,
+                                              self._navigator.mid_sector.status,
+                                              self._navigator.right_sector.status))
 
-            print(self._navigator.target_side)
+            # print(self._navigator.target_side)
 
             if any(map(lambda x: x.value, states)):
                 # Нечёткая логика начинается здесь
