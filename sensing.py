@@ -7,7 +7,7 @@ import numpy as np
 from numpy import NaN
 
 import constants as const
-from zmqRemoteApi import RemoteAPIClient
+from coppeliasim_api.zmqRemoteApi import RemoteAPIClient
 
 
 class TargetSide(IntEnum):

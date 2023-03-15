@@ -1,6 +1,5 @@
 import time
-import numpy as np
-from zmqRemoteApi import RemoteAPIClient
+from coppeliasim_api.zmqRemoteApi import RemoteAPIClient
 
 from sensing import Navigator
 from planner import Planner
