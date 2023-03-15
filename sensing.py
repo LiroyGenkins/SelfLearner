@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from enum import Enum
+from enum import IntEnum
 from threading import Thread
 from time import sleep
 
@@ -21,7 +21,7 @@ class SensorPoint:
 
 
 class SensorSector:
-    class Status(Enum):
+    class Status(IntEnum):
         empty = 0
         far = 1
         medium = 2
@@ -149,7 +149,7 @@ class Sensor:
 
 
 class Navigator(Sensor):
-    class TargetSide(Enum):
+    class TargetSide(IntEnum):
         right = 0
         left = 1
 
