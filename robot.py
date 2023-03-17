@@ -70,48 +70,68 @@ class Robot:
             self.sim.setJointTargetVelocity(left_motor, 0)
             self.sim.setJointTargetVelocity(right_motor, 0)
 
-    def move(self):
-        left_motor = sim.getObject("./leftMotor")
-        right_motor = sim.getObject("./rightMotor")
-        self.sim.setJointTargetVelocity(left_motor, 1)
-        self.sim.setJointTargetVelocity(right_motor, 1)
-        while 1:
-            distance = self.sim.checkDistance(self.kuka, self.goal, 0)
-            print(distance)
-            if distance[1][6] == 0.0:
-                self.sim.setJointTargetVelocity(left_motor, 0)
-                self.sim.setJointTargetVelocity(right_motor, 0)
-                break
+    # def move(self):
+    #     left_motor = sim.getObject("./leftMotor")
+    #     right_motor = sim.getObject("./rightMotor")
+    #     self.sim.setJointTargetVelocity(left_motor, 1)
+    #     self.sim.setJointTargetVelocity(right_motor, 1)
+    #     while 1:
+    #         distance = self.sim.checkDistance(self.kuka, self.goal, 0)
+    #         print(distance)
+    #         if distance[1][6] == 0.0:
+    #             self.sim.setJointTargetVelocity(left_motor, 0)
+    #             self.sim.setJointTargetVelocity(right_motor, 0)
+    #             break
 
     def start(self):
         """
         Старт работы робота
         """
+        fuzzy_flag = False
+        robot.rotate()
         while 1:
-            self._set_movement(const.ROBOT_SPEED, const.ROBOT_SPEED)
-
             states = [self._navigator.left_sector.status,
                       self._navigator.mid_sector.status,
                       self._navigator.right_sector.status]
-            # print(states)
-            print(self._planner.make_decision(self._navigator.target_side,
-                                              self._navigator.left_sector.status,
-                                              self._navigator.mid_sector.status,
-                                              self._navigator.right_sector.status))
+            print(states)
 
-            # print(self._navigator.target_side)
-
-            if any(map(lambda x: x.value, states)):
+            if states[1].value:
                 # Нечёткая логика начинается здесь
-                ...
+                print("Нечотко")
+                decision = self._planner.make_decision(self._navigator.target_side,
+                                                  self._navigator.left_sector.status,
+                                                  self._navigator.mid_sector.status,
+                                                  self._navigator.right_sector.status)
+                print(self._navigator.target_side)
+                print(decision)
+
+                # TODO: Сделать отдельные методы нечёткого поворота жука по типу "пока не"
+
+                left_velocity = 0
+                right_velocity = 0
+                fuzzy_flag = True
+
+            elif fuzzy_flag:
+                fuzzy_flag = False
+                robot.rotate()
             else:
                 # Тут чёткая наводка на цель
-                ...
+                print("Чотко")
+                left_velocity = const.ROBOT_SPEED
+                right_velocity = const.ROBOT_SPEED
+
+
+            self._set_movement(left_velocity, right_velocity)
+
 
             # distance = self._navigator.min_dist
             # if (not np.isnan(distance)) and (distance < ROBOT_STOP_DISTANCE):
             #     self._set_movement(0, 0, 0)
             #     break
+            distance = self.sim.checkDistance(self.kuka, self.goal, 0)
+            if distance[1][6] == 0.0:
+                self._set_movement(0, 0)
+                break
 
 
 if __name__ == "__main__":
@@ -120,6 +140,4 @@ if __name__ == "__main__":
     sim.startSimulation()
 
     robot = Robot(sim, const.ROBOT_NAME)
-    robot.rotate()
-    robot.move()
-    # robot.start()
+    robot.start()
