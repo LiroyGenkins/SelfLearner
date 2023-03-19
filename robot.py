@@ -1,3 +1,4 @@
+import math
 import time
 from coppeliasim_api.zmqRemoteApi import RemoteAPIClient
 
@@ -13,6 +14,8 @@ class Robot:
         self.name = robot_name
         self.sim = sim
 
+        self.kuka = sim.getObject("./PioneerP3DX")
+        self.goal = sim.getObject("./Goal")
         self._navigator = Navigator()
         self._planner = Planner()
 
@@ -51,6 +54,35 @@ class Robot:
         self.sim.setJointTargetVelocity(left_motor, 0)
         self.sim.setJointTargetVelocity(right_motor, 0)
 
+        while 1:
+            relativePosition = sim.getObjectPosition(self.goal, self.kuka)
+            angle = math.atan2(relativePosition[1], relativePosition[0]) * 180 / math.pi
+            print(angle)
+            if(abs(angle) < 0.1):
+                break
+
+            if(angle > 0):
+                self.sim.setJointTargetVelocity(left_motor, -1)
+                self.sim.setJointTargetVelocity(right_motor, 1)
+            elif(angle < 0):
+                self.sim.setJointTargetVelocity(left_motor, 1)
+                self.sim.setJointTargetVelocity(right_motor, -1)
+            self.sim.setJointTargetVelocity(left_motor, 0)
+            self.sim.setJointTargetVelocity(right_motor, 0)
+
+    def move(self):
+        left_motor = sim.getObject("./leftMotor")
+        right_motor = sim.getObject("./rightMotor")
+        self.sim.setJointTargetVelocity(left_motor, 1)
+        self.sim.setJointTargetVelocity(right_motor, 1)
+        while 1:
+            distance = self.sim.checkDistance(self.kuka, self.goal, 0)
+            print(distance)
+            if distance[1][6] == 0.0:
+                self.sim.setJointTargetVelocity(left_motor, 0)
+                self.sim.setJointTargetVelocity(right_motor, 0)
+                break
+
     def start(self):
         """
         Старт работы робота
@@ -88,4 +120,6 @@ if __name__ == "__main__":
     sim.startSimulation()
 
     robot = Robot(sim, const.ROBOT_NAME)
-    robot.start()
+    robot.rotate()
+    robot.move()
+    # robot.start()
