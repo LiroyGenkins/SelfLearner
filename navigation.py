@@ -85,13 +85,17 @@ class Navigator:
         self._robot_handle = self._sim.getObject('/' + const.ROBOT_NAME)
         self._target_handle = self._sim.getObject('/' + const.TARGET_NAME)
 
+        #: Инициализация стороны цели
         self._target_side = self._get_target_position()
 
+        #: Инициализация секторов сенсора
         self._left_sector = SensorSector()
         self._mid_sector = SensorSector()
         self._right_sector = SensorSector()
         self._mid_sector_left_angle, self._mid_sector_right_angle = mid_sector_angles()
         self.min_dist = NaN
+
+        self._map = []
 
         #: Отдельный тред для постоянного получения данных о расположении цели и наличии препятствий
         self._sensor_controller = Thread(target=self._monitor_sensors,
@@ -115,6 +119,10 @@ class Navigator:
     def target_side(self):
         return self._target_side
 
+    @property
+    def map(self):
+        return self._map
+
     def _get_target_position(self):
         target_coords = self._sim.getObjectPosition(self._target_handle, self._robot_handle)
         if target_coords[1] > 0:
@@ -135,7 +143,7 @@ class Navigator:
 
             result = bool(self._sim.getInt32Signal("r"))
 
-            if result:
+            if result:  #: Есть ли препятствия в области видимости лидара
                 point_abs_signal = self._sim.getStringSignal("pointDataAbs")
                 points = self._sim.unpackTable(point_abs_signal)
                 absolute_coords_2d = [[pt[0], pt[1]] if pt != {} else [NaN, NaN] for pt in points]
@@ -153,26 +161,33 @@ class Navigator:
                 dists = [NaN] * const.LIDAR_NUM_POINTS
 
             for i in range(const.LIDAR_NUM_POINTS):
-                point = SensorPoint(absolute_coords_2d[i][0],
-                                    absolute_coords_2d[i][1],
-                                    relative_coords_2d[i][0],
-                                    relative_coords_2d[i][1],
-                                    dists[i],
-                                    i * np.pi / 180)
-                if not np.isnan(point.x_rel):
-                    if point.x_rel < -const.LIDAR_MID_SECTOR_WIDTH / 2:
-                        left_sector_points.append(point)
-                    elif -const.LIDAR_MID_SECTOR_WIDTH / 2 <= point.x_rel <= const.LIDAR_MID_SECTOR_WIDTH / 2:
-                        mid_sector_points.append(point)
+                sector_point = SensorPoint(absolute_coords_2d[i][0],
+                                           absolute_coords_2d[i][1],
+                                           relative_coords_2d[i][0],
+                                           relative_coords_2d[i][1],
+                                           dists[i],
+                                           i * np.pi / 180)
+
+                #: Добавление точки на карту
+                point_2d = [sector_point.x_abs, sector_point.y_abs]
+                if point_2d not in self._map:
+                    self._map.append(point_2d)
+
+                #: Определение принадлежности точки к секторам
+                if not np.isnan(sector_point.x_rel):
+                    if sector_point.x_rel < -const.LIDAR_MID_SECTOR_WIDTH / 2:
+                        left_sector_points.append(sector_point)
+                    elif -const.LIDAR_MID_SECTOR_WIDTH / 2 <= sector_point.x_rel <= const.LIDAR_MID_SECTOR_WIDTH / 2:
+                        mid_sector_points.append(sector_point)
                     else:
-                        right_sector_points.append(point)
+                        right_sector_points.append(sector_point)
                 else:
-                    if point.angle < self._mid_sector_left_angle:
-                        left_sector_points.append(point)
-                    elif self._mid_sector_left_angle <= point.angle <= self._mid_sector_right_angle:
-                        mid_sector_points.append(point)
+                    if sector_point.angle < self._mid_sector_left_angle:
+                        left_sector_points.append(sector_point)
+                    elif self._mid_sector_left_angle <= sector_point.angle <= self._mid_sector_right_angle:
+                        mid_sector_points.append(sector_point)
                     else:
-                        right_sector_points.append(point)
+                        right_sector_points.append(sector_point)
 
             self._left_sector._set_points(left_sector_points)
             self._mid_sector._set_points(mid_sector_points)

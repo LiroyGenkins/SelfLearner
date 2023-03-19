@@ -1,7 +1,7 @@
 import time
 from coppeliasim_api.zmqRemoteApi import RemoteAPIClient
 
-from sensing import Navigator
+from navigation import Navigator
 from planner import Planner
 
 import constants as const
