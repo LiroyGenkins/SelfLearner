@@ -2,7 +2,7 @@ import math
 import time
 from coppeliasim_api.zmqRemoteApi import RemoteAPIClient
 
-from navigation import Navigator
+from self_learner.navigation.navigation import Navigator
 from planner import Planner
 
 import constants as const

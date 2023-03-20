@@ -6,7 +6,7 @@ from time import sleep
 import numpy as np
 from numpy import NaN
 
-import constants as const
+from self_learner import constants as const
 from coppeliasim_api.zmqRemoteApi import RemoteAPIClient
 
 
@@ -142,37 +142,6 @@ class Navigator:
     def target_side(self):
         return self._target_side
 
-    def obstacle_between_robot_and_target(self, robot_handle, target_handle):
-        x1, y1 = self._sim.getPosition(robot_handle)[:1]  #: Координаты робота
-        x2, y2 = self._sim.getPosition(target_handle)[:1]  #: Координаты цели
-        for point in self._map:
-            x0, y0 = point[0], point[1]  #: Координаты точки на карте
-
-            #: Поиск препятствия в рамках прямоугольника,
-            # диагональю которого является отрезок с вершинами — местами расположения робота и цели
-            if min(x1, x2) <= x0 <= max(x1, x2) and \
-                    min(y1, y2) <= y0 <= max(y1, y2):
-                try:
-                    dist = abs((y2 - y1) * x0 - (x2 - x1) * y0 + x2 * y1 - y2 * x1) / \
-                           np.sqrt((y2 - y1) ** 2 + (x2 - x1) ** 2)  #: Расстояние от точки до отрезка робот-цель
-                    #: Если расстояние от какой-либо точки, присутствующей на карте,
-                    # до отрезка робот-цель меньше половины ширины среднего сектора,
-                    # то считаем, что между роботом и целью есть препятствие.
-                    # Другой вариант: меньше половины расстояния между точками лидара.
-                    # if dist <= const.LIDAR_DIST_BETWEEN_POINTS / 2:
-                    if dist < const.LIDAR_MID_SECTOR_WIDTH / 2:
-                        return True
-                except ZeroDivisionError:
-                    print("Цель уже достигнута!")
-                return False
-
-    def _get_target_position(self):
-        target_coords = self._sim.getObjectPosition(self._target_handle, self._robot_handle)
-        if target_coords[1] > 0:
-            return TargetSide.left
-        else:
-            return TargetSide.right
-
     def _monitor_sensors(self):
         """Получение данных с датчиков.
         Заполнение секторов лидара точками.
@@ -241,3 +210,37 @@ class Navigator:
             self._target_side = self._get_target_position()
 
             sleep(const.SENSORS_UPDATE_PERIOD)
+
+    def obstacle_between_robot_and_target(self, robot_handle, target_handle):
+        x1, y1 = self._sim.getPosition(robot_handle)[:1]  #: Координаты робота
+        x2, y2 = self._sim.getPosition(target_handle)[:1]  #: Координаты цели
+        for point in self._map:
+            x0, y0 = point[0], point[1]  #: Координаты точки на карте
+
+            #: Поиск препятствия в рамках прямоугольника,
+            # диагональю которого является отрезок с вершинами — местами расположения робота и цели
+            if min(x1, x2) <= x0 <= max(x1, x2) and \
+                    min(y1, y2) <= y0 <= max(y1, y2):
+                try:
+                    dist = abs((y2 - y1) * x0 - (x2 - x1) * y0 + x2 * y1 - y2 * x1) / \
+                           np.sqrt((y2 - y1) ** 2 + (x2 - x1) ** 2)  #: Расстояние от точки до отрезка робот-цель
+                    #: Если расстояние от какой-либо точки, присутствующей на карте,
+                    # до отрезка робот-цель меньше половины ширины среднего сектора,
+                    # то считаем, что между роботом и целью есть препятствие.
+                    # Другой вариант: меньше половины расстояния между точками лидара.
+                    # if dist <= const.LIDAR_DIST_BETWEEN_POINTS / 2:
+                    if dist < const.LIDAR_MID_SECTOR_WIDTH / 2:
+                        return True
+                except ZeroDivisionError:
+                    print("Цель уже достигнута!")
+                return False
+
+    def _get_target_position(self):
+        target_coords = self._sim.getObjectPosition(self._target_handle, self._robot_handle)
+        if target_coords[1] > 0:
+            return TargetSide.left
+        else:
+            return TargetSide.right
+
+    def _ramer_douglas_peucker(self, line, eps):
+        ...
