@@ -32,23 +32,31 @@ class SensorSector:
         medium = 2
         close = 3
 
-    points: list[SensorPoint] = []
-
     def __init__(self):
+        self._points: list[SensorPoint] = []
         self._status = self.Status.empty
-        self.min_dist = NaN
+        self._min_dist = NaN
 
     @property
     def status(self):
         return self._status
 
-    def _set_points(self, points):
+    @property
+    def min_dist(self):
+        return self._min_dist
+
+    @property
+    def points(self):
+        return self._points
+
+    @points.setter
+    def points(self, points):
         """Добавление точек в каждый сектор сенсора.
         Определение минимальной дистанции до препятствия, если оно есть,
         и определение значения терма
         """
-        self.points = points
-        min_dist = np.nanmin([p.dist for p in self.points])
+        self._points = points
+        min_dist = np.nanmin([p.dist for p in self._points])
         # TODO: Заменить на дефаззификацию(?)
         if min_dist == NaN:
             self._status = self.Status.empty
@@ -59,7 +67,21 @@ class SensorSector:
         elif 4 < min_dist <= 5:
             self._status = self.Status.far
 
-        self.min_dist = min_dist
+        self._min_dist = min_dist
+
+
+class Map(list):
+    def __init__(self):
+        super().__init__()
+        self._points: list[float, float] = []
+
+    @property
+    def points(self):
+        return self._points
+
+    def append(self, point):
+        self._points.append(point)
+        return self.points
 
 
 class Navigator:
@@ -95,7 +117,8 @@ class Navigator:
         self._mid_sector_left_angle, self._mid_sector_right_angle = mid_sector_angles()
         self.min_dist = NaN
 
-        self._map = []
+        #: Инициализация карты
+        self._map = Map()
 
         #: Отдельный тред для постоянного получения данных о расположении цели и наличии препятствий
         self._sensor_controller = Thread(target=self._monitor_sensors,
@@ -119,9 +142,29 @@ class Navigator:
     def target_side(self):
         return self._target_side
 
-    @property
-    def map(self):
-        return self._map
+    def obstacle_between_robot_and_target(self, robot_handle, target_handle):
+        x1, y1 = self._sim.getPosition(robot_handle)[:1]  #: Координаты робота
+        x2, y2 = self._sim.getPosition(target_handle)[:1]  #: Координаты цели
+        for point in self._map:
+            x0, y0 = point[0], point[1]  #: Координаты точки на карте
+
+            #: Поиск препятствия в рамках прямоугольника,
+            # диагональю которого является отрезок с вершинами — местами расположения робота и цели
+            if min(x1, x2) <= x0 <= max(x1, x2) and \
+                    min(y1, y2) <= y0 <= max(y1, y2):
+                try:
+                    dist = abs((y2 - y1) * x0 - (x2 - x1) * y0 + x2 * y1 - y2 * x1) / \
+                           np.sqrt((y2 - y1) ** 2 + (x2 - x1) ** 2)  #: Расстояние от точки до отрезка робот-цель
+                    #: Если расстояние от какой-либо точки, присутствующей на карте,
+                    # до отрезка робот-цель меньше половины ширины среднего сектора,
+                    # то считаем, что между роботом и целью есть препятствие.
+                    # Другой вариант: меньше половины расстояния между точками лидара.
+                    # if dist <= const.LIDAR_DIST_BETWEEN_POINTS / 2:
+                    if dist < const.LIDAR_MID_SECTOR_WIDTH / 2:
+                        return True
+                except ZeroDivisionError:
+                    print("Цель уже достигнута!")
+                return False
 
     def _get_target_position(self):
         target_coords = self._sim.getObjectPosition(self._target_handle, self._robot_handle)
@@ -189,9 +232,9 @@ class Navigator:
                     else:
                         right_sector_points.append(sector_point)
 
-            self._left_sector._set_points(left_sector_points)
-            self._mid_sector._set_points(mid_sector_points)
-            self._right_sector._set_points(right_sector_points)
+            self._left_sector.points = left_sector_points
+            self._mid_sector.points = mid_sector_points
+            self._right_sector.points = right_sector_points
             self.min_dist = np.nanmin(
                 [self._left_sector.min_dist, self._mid_sector.min_dist, self._right_sector.min_dist])
 

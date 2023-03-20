@@ -14,8 +14,11 @@ class Robot:
         self.name = robot_name
         self.sim = sim
 
-        self.kuka = sim.getObject("./PioneerP3DX")
-        self.goal = sim.getObject("./Goal")
+        self._robot_handle = sim.getObject(f"./{const.ROBOT_NAME}")
+        self._target_handle = sim.getObject("./Goal")
+        self._left_motor_handle = sim.getObject("./leftMotor")
+        self._right_motor_handle = sim.getObject("./rightMotor")
+
         self._navigator = Navigator()
         self._planner = Planner()
 
@@ -42,45 +45,39 @@ class Robot:
     #     self.sim.setJointTargetVelocity(wheel_joints[3], -forward_back_vel + left_right_vel + rotation_vel)
 
     def _set_movement(self, left, right):
-        left_motor = sim.getObject("./leftMotor")
-        right_motor = sim.getObject("./rightMotor")
-        self.sim.setJointTargetVelocity(left_motor, left)
-        self.sim.setJointTargetVelocity(right_motor, right)
+        self.sim.setJointTargetVelocity(self._left_motor_handle, left)
+        self.sim.setJointTargetVelocity(self._right_motor_handle, right)
 
     # TODO: методы для движения прямо, движения с поворотом, поворота на месте и т.д.
     def rotate(self):
-        left_motor = sim.getObject("./leftMotor")
-        right_motor = sim.getObject("./rightMotor")
-        self.sim.setJointTargetVelocity(left_motor, 0)
-        self.sim.setJointTargetVelocity(right_motor, 0)
+        self.sim.setJointTargetVelocity(self._left_motor_handle, 0)
+        self.sim.setJointTargetVelocity(self._right_motor_handle, 0)
 
         while 1:
-            relativePosition = sim.getObjectPosition(self.goal, self.kuka)
-            angle = math.atan2(relativePosition[1], relativePosition[0]) * 180 / math.pi
+            relative_position = sim.getObjectPosition(self._target_handle, self._robot_handle)
+            angle = math.atan2(relative_position[1], relative_position[0]) * 180 / math.pi
             print(angle)
-            if(abs(angle) < 0.1):
+            if abs(angle) < 0.1:
                 break
 
-            if(angle > 0):
-                self.sim.setJointTargetVelocity(left_motor, -1)
-                self.sim.setJointTargetVelocity(right_motor, 1)
-            elif(angle < 0):
-                self.sim.setJointTargetVelocity(left_motor, 1)
-                self.sim.setJointTargetVelocity(right_motor, -1)
-            self.sim.setJointTargetVelocity(left_motor, 0)
-            self.sim.setJointTargetVelocity(right_motor, 0)
+            if angle > 0:
+                self.sim.setJointTargetVelocity(self._left_motor_handle, -1)
+                self.sim.setJointTargetVelocity(self._right_motor_handle, 1)
+            elif angle < 0:
+                self.sim.setJointTargetVelocity(self._left_motor_handle, 1)
+                self.sim.setJointTargetVelocity(self._right_motor_handle, -1)
+            self.sim.setJointTargetVelocity(self._left_motor_handle, 0)
+            self.sim.setJointTargetVelocity(self._right_motor_handle, 0)
 
     def move(self):
-        left_motor = sim.getObject("./leftMotor")
-        right_motor = sim.getObject("./rightMotor")
-        self.sim.setJointTargetVelocity(left_motor, 1)
-        self.sim.setJointTargetVelocity(right_motor, 1)
+        self.sim.setJointTargetVelocity(self._left_motor_handle, 1)
+        self.sim.setJointTargetVelocity(self._right_motor_handle, 1)
         while 1:
-            distance = self.sim.checkDistance(self.kuka, self.goal, 0)
+            distance = self.sim.checkDistance(self._robot_handle, self._target_handle, 0)
             print(distance)
             if distance[1][6] == 0.0:
-                self.sim.setJointTargetVelocity(left_motor, 0)
-                self.sim.setJointTargetVelocity(right_motor, 0)
+                self.sim.setJointTargetVelocity(self._left_motor_handle, 0)
+                self.sim.setJointTargetVelocity(self._right_motor_handle, 0)
                 break
 
     def start(self):
