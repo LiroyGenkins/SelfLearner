@@ -2,8 +2,8 @@ import math
 import time
 from coppeliasim_api.zmqRemoteApi import RemoteAPIClient
 
-from self_learner.navigation.navigation import Navigator
-from planner import Planner
+from navigation.navigation import Navigator
+from planner.planner import Planner
 
 import constants as const
 
@@ -91,10 +91,10 @@ class Robot:
                       self._navigator.mid_sector.status,
                       self._navigator.right_sector.status]
             # print(states)
-            print(self._planner.make_decision(self._navigator.target_side,
-                                              self._navigator.left_sector.status,
-                                              self._navigator.mid_sector.status,
-                                              self._navigator.right_sector.status))
+            # print(self._planner.make_decision(self._navigator.target_side,
+            #                                   self._navigator.left_sector.status,
+            #                                   self._navigator.mid_sector.status,
+            #                                   self._navigator.right_sector.status))
 
             # print(self._navigator.target_side)
 
@@ -117,6 +117,6 @@ if __name__ == "__main__":
     sim.startSimulation()
 
     robot = Robot(sim, const.ROBOT_NAME)
-    robot.rotate()
-    robot.move()
-    # robot.start()
+    # robot.rotate()
+    # robot.move()
+    robot.start()

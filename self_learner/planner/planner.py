@@ -1,5 +1,7 @@
-import pandas as pd
 from enum import IntEnum
+from pathlib import Path
+
+import pandas as pd
 
 
 class Planner:
@@ -19,7 +21,7 @@ class Planner:
                                'right':         self.TurningAngle.right,
                                'big right':     self.TurningAngle.big_right}
 
-        self._rules = pd.read_csv('fuzzy_logic_rules.csv')
+        self._rules = pd.read_csv(f'{Path(__file__).parent}/fuzzy_logic_rules.csv')
         self._rules.replace({'target_side':     {'right': 0,
                                                  'left': 1},
 
