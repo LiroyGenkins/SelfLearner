@@ -1,5 +1,13 @@
 import numpy as np
 
+import constants as const
+
+
+def point_point_distance(p1, p2):
+    x1, y1 = p1
+    x2, y2 = p2
+    return np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+
 
 def point_line_distance(point, line_point1, line_point2):
     x0, y0 = point
@@ -8,11 +16,18 @@ def point_line_distance(point, line_point1, line_point2):
     try:
         dist = abs((y2 - y1) * x0 - (x2 - x1) * y0 + x2 * y1 - y2 * x1) / \
                np.sqrt((y2 - y1) ** 2 + (x2 - x1) ** 2)
+        return dist
     except ZeroDivisionError:
         raise ZeroDivisionError('Точки, принадлежащие прямой, должны различаться!')
 
 
-def sectors_intersect(sector1, sector2):
+def point_on_segment(point, line_point1, line_point2):
+    if point_line_distance(point, line_point1, line_point2) < const.POSITION_EPSILON:
+        return True
+    return False
+
+
+def segments_intersect(sector1, sector2):
     def direction(p1, p2, p3):
         return np.cross(np.subtract(p3, p1)), np.subtract(p2, p1)
 
@@ -33,7 +48,6 @@ def sectors_intersect(sector1, sector2):
     if ((d1 > 0 and d2 < 0) or (d1 < 0 and d2 > 0)) and \
             ((d3 > 0 and d4 < 0) or (d3 < 0 and d4 > 0)):
         return True
-
     elif d1 == 0 and on_segment(p3, p4, p1):
         return True
     elif d2 == 0 and on_segment(p3, p4, p2):
@@ -44,7 +58,6 @@ def sectors_intersect(sector1, sector2):
         return True
     else:
         return False
-
 
 # def _ramer_douglas_peucker(self, line, eps):
 #     indices_stack = [(0, len(line))]
