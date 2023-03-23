@@ -60,7 +60,7 @@ class LidarSector:
         self._points = points
         min_dist = np.nanmin([p.dist for p in self._points])
         # TODO: Заменить на дефаззификацию(?)
-        if min_dist == NaN:
+        if np.isnan(min_dist):
             self._status = self.Status.empty
         elif 0 <= min_dist <= 2:
             self._status = self.Status.close
@@ -70,6 +70,7 @@ class LidarSector:
             self._status = self.Status.far
 
         self._min_dist = min_dist
+        # print(min_dist)
 
 
 class Map(list):
@@ -90,13 +91,14 @@ class Map(list):
                 self._sectors.append(new_sector)
             else:
                 for sector in self.sectors:
+
                     if ((new_sector[0] == sector[0] and new_sector[1] != sector[1]) or
                             (new_sector[1] == sector[1] and new_sector[0] != sector[0]) or
                             (new_sector[1] == sector[0] and new_sector[0] != sector[1]) or
                             (new_sector[0] == sector[1] and new_sector[1] != sector[0])):
                         self._sectors.append(new_sector)
                         break
-                    elif not sectors_intersect(new_sector, sector):
+                    elif not segments_intersect(new_sector, sector):
                         self._sectors.append(new_sector)
                         break
         return self.sectors
