@@ -57,7 +57,7 @@ class Robot:
             relative_position = sim.getObjectPosition(self._target_handle, self._robot_handle)
             angle = math.atan2(relative_position[1], relative_position[0]) * 180 / math.pi
             print(angle)
-            if abs(angle) < 0.1:
+            if abs(angle) < 0.3:
                 break
 
             if angle > 0:
@@ -95,7 +95,7 @@ class Robot:
 
             left_sec, mid_sec, right_sec = states
 
-            if mid_sec and (left_sec or right_sec):
+            if any([mid_sec, left_sec, right_sec]):
                 # Нечёткая логика начинается здесь
                 print("Нечотко")
                 decision = self._planner.make_decision(self._navigator.target_side,
@@ -105,8 +105,8 @@ class Robot:
                 print(self._navigator.target_side)
                 print(decision)
 
-                wheel_coefs = {0: (0.5, 1), 1: (0.7, 1), 2: (0.9, 1),
-                               3: (1, 0.9), 4: (1, 0.7), 5: (1, 0.5)}
+                wheel_coefs = {0: (0.5, 1), 1: (0.75, 1), 2: (0.95, 1),
+                               3: (1, 0.95), 4: (1, 0.75), 5: (1, 0.5)}
 
                 left, right = wheel_coefs[decision.value]
 
