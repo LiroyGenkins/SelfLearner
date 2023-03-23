@@ -177,7 +177,6 @@ class Navigator:
             if result:  #: Есть ли препятствия в области видимости лидара
                 point_abs_signal = self._sim.getStringSignal("pointDataAbs")
                 points = self._sim.unpackTable(point_abs_signal)
-                print(points)
                 absolute_coords_2d = [[pt[0], pt[1]] if pt != {} else [NaN, NaN] for pt in points]
 
                 point_rel_signal = self._sim.getStringSignal("pointDataRel")
