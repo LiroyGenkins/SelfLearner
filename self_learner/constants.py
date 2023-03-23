@@ -13,3 +13,5 @@ LIDAR_DIST_BETWEEN_POINTS = math.pi * LIDAR_MAX_DIST ** 2 /\
                             (LIDAR_NUM_POINTS - 1)  #: Расстояние между двумя точками лидара
 
 TARGET_NAME = 'Goal'
+
+POSITION_EPSILON = 0.001
