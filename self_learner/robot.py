@@ -84,31 +84,57 @@ class Robot:
         """
         Старт работы робота
         """
+        # Начальный поворот на цель и установка флага объезда препятствия
+        fuzzy_flag = False
+        robot.rotate()
         while 1:
-            self._set_movement(const.ROBOT_SPEED, const.ROBOT_SPEED)
-
-            states = [self._navigator.left_sector.status,
+            states = (self._navigator.left_sector.status,
                       self._navigator.mid_sector.status,
-                      self._navigator.right_sector.status]
+                      self._navigator.right_sector.status)
             print(states)
-            # print(self._planner.make_decision(self._navigator.target_side,
-            #                                   self._navigator.left_sector.status,
-            #                                   self._navigator.mid_sector.status,
-            #                                   self._navigator.right_sector.status))
 
-            # print(self._navigator.target_side)
+            left_sec, mid_sec, right_sec = states
 
-            if any(map(lambda x: x.value, states)):
+            if mid_sec and (left_sec or right_sec):
                 # Нечёткая логика начинается здесь
-                ...
+                print("Нечотко")
+                decision = self._planner.make_decision(self._navigator.target_side,
+                                                       self._navigator.left_sector.status,
+                                                       self._navigator.mid_sector.status,
+                                                       self._navigator.right_sector.status)
+                print(self._navigator.target_side)
+                print(decision)
+
+                wheel_coefs = {0: (0.5, 1), 1: (0.7, 1), 2: (0.9, 1),
+                               3: (1, 0.9), 4: (1, 0.7), 5: (1, 0.5)}
+
+                left, right = wheel_coefs[decision.value]
+
+                # left, right = 1, 1
+
+                left_velocity = left * const.ROBOT_SPEED
+                right_velocity = right * const.ROBOT_SPEED
+                fuzzy_flag = True
+
+            elif fuzzy_flag and not mid_sec:
+                fuzzy_flag = False
+                robot.rotate()
             else:
                 # Тут чёткая наводка на цель
-                ...
+                print("Чотко")
+                left_velocity = const.ROBOT_SPEED
+                right_velocity = const.ROBOT_SPEED
+
+            self._set_movement(left_velocity, right_velocity)
 
             # distance = self._navigator.min_dist
             # if (not np.isnan(distance)) and (distance < ROBOT_STOP_DISTANCE):
             #     self._set_movement(0, 0, 0)
             #     break
+            distance = self.sim.checkDistance(self._robot_handle, self._target_handle, 0)
+            if distance[1][6] == 0.0:
+                self._set_movement(0, 0)
+                break
 
 
 if __name__ == "__main__":
@@ -117,6 +143,4 @@ if __name__ == "__main__":
     sim.startSimulation()
 
     robot = Robot(sim, const.ROBOT_NAME)
-    # robot.rotate()
-    # robot.move()
     robot.start()
