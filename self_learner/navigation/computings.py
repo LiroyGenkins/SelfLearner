@@ -21,13 +21,13 @@ def point_line_distance(point, line_point1, line_point2):
         raise ZeroDivisionError('Точки, принадлежащие прямой, должны различаться!')
 
 
-def point_on_segment(point, line_point1, line_point2):
-    if point_line_distance(point, line_point1, line_point2) < const.POSITION_EPSILON:
+def point_on_segment(point, segment_point1, segment_point2):
+    if point_line_distance(point, segment_point1, segment_point2) < const.POSITION_EPSILON:
         return True
     return False
 
 
-def segments_intersect(sector1, sector2):
+def segments_intersect(segment1, segment2):
     def direction(p1, p2, p3):
         return np.cross(np.subtract(p3, p1)), np.subtract(p2, p1)
 
@@ -37,8 +37,8 @@ def segments_intersect(sector1, sector2):
         x, y = p
         return min(x1, x2) <= x <= max(x1, x2) and min(y1, y2) <= y <= max(y1, y2)
 
-    p1, p2 = sector1
-    p3, p4 = sector2
+    p1, p2 = segment1
+    p3, p4 = segment2
 
     d1 = direction(p3, p4, p1)
     d2 = direction(p3, p4, p2)

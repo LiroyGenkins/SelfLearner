@@ -4,12 +4,10 @@ from threading import Thread
 from time import sleep
 
 from numpy import NaN
-
 from rdp import rdp
 
-from self_learner import constants as const
-from navigation.computings import *
 from coppeliasim_api.zmqRemoteApi import RemoteAPIClient
+from navigation.computings import *
 
 
 class TargetSide(IntEnum):
@@ -75,31 +73,72 @@ class LidarSector:
 class Map(list):
     def __init__(self):
         super().__init__()
-        self._sectors: list[list[float, float]] = []
+        self._segments: list[list[float, float]] = []
 
     @property
-    def sectors(self):
-        return self._sectors
+    def segments(self):
+        return self._segments
 
     def extend(self, points):
         points = [point for point in points if not any(np.isnan(point))]
         points = rdp(points, epsilon=0.1)
+        new_segments = []
         for i in range(1, len(points)):
-            new_sector = [points[i - 1], points[i]]
-            if not self.sectors:
-                self._sectors.append(new_sector)
-            else:
-                for sector in self.sectors:
-                    if ((new_sector[0] == sector[0] and new_sector[1] != sector[1]) or
-                            (new_sector[1] == sector[1] and new_sector[0] != sector[0]) or
-                            (new_sector[1] == sector[0] and new_sector[0] != sector[1]) or
-                            (new_sector[0] == sector[1] and new_sector[1] != sector[0])):
-                        self._sectors.append(new_sector)
-                        break
-                    elif not segments_intersect(new_sector, sector):
-                        self._sectors.append(new_sector)
-                        break
-        return self.sectors
+            new_segments.append([points[i - 1], points[i]])
+        if not self.segments:
+            self._segments.extend(new_segments)
+        else:
+            for segment in self.segments:
+                new_segments_tmp = []
+                for i in range(len(new_segments)):
+                    if (point_on_segment(new_segments[i][0], segment[0], segment[1]) and
+                            point_on_segment(segment[1], new_segments[i][0], new_segments[i][1]) and
+                            point_point_distance(new_segments[i][0], segment[1]) > const.POSITION_EPSILON):
+                        new_segments_tmp.append([segment[0], new_segments[i][1]])
+
+                    elif (point_on_segment(new_segments[i][0], segment[0], segment[1]) and
+                          point_on_segment(segment[0], new_segments[i][0], new_segments[i][1]) and
+                          point_point_distance(new_segments[i][0], segment[0]) > const.POSITION_EPSILON):
+                        new_segments_tmp.append([segment[1], new_segments[i][1]])
+
+                    elif (point_on_segment(new_segments[i][1], segment[0], segment[1]) and
+                          point_on_segment(segment[0], new_segments[i][0], new_segments[i][1]) and
+                          point_point_distance(new_segments[i][1], segment[0]) > const.POSITION_EPSILON):
+                        new_segments_tmp.append([segment[1], new_segments[i][0]])
+
+                    elif (point_on_segment(new_segments[i][1], segment[0], segment[1]) and
+                          point_on_segment(segment[1], new_segments[i][0], new_segments[i][1]) and
+                          point_point_distance(new_segments[i][1], segment[1]) > const.POSITION_EPSILON):
+                        new_segments_tmp.append([segment[0], new_segments[i][0]])
+
+                    elif (point_on_segment(segment[0], new_segments[i][0], new_segments[i][1]) and
+                          point_on_segment(segment[1], new_segments[i][0], new_segments[i][1])):
+                        if (point_point_distance(segment[1], new_segments[i][0]) <
+                                point_point_distance(segment[1], new_segments[i][1])):
+                            new_segments_tmp.append([segment[1], new_segments[i][0]])
+                            new_segments_tmp.append([segment[0], new_segments[i][1]])
+                        else:
+                            new_segments_tmp.append([segment[1], new_segments[i][1]])
+                            new_segments_tmp.append([segment[0], new_segments[i][0]])
+
+                    else:
+                        new_segments_tmp.append(new_segments[i])
+                        new_segments_tmp.append(segment)
+
+                new_segments = new_segments_tmp.copy()
+            self._segments = new_segments.copy()
+            del new_segments
+
+            # elif ((new_segment[0] == segment[0] and new_segment[1] != segment[1]) or
+            #         (new_segment[1] == segment[1] and new_segment[0] != segment[0]) or
+            #         (new_segment[1] == segment[0] and new_segment[0] != segment[1]) or
+            #         (new_segment[0] == segment[1] and new_segment[1] != segment[0])):
+            #     self._segments.append(new_segment)
+            #     break
+            # elif not segments_intersect(new_segment, segment):
+            #     self._segments.append(new_segment)
+            #     break
+        return self.segments
 
 
 class Navigator:
@@ -191,7 +230,7 @@ class Navigator:
                 relative_coords_2d = [[NaN, NaN]] * const.LIDAR_NUM_POINTS
                 dists = [NaN] * const.LIDAR_NUM_POINTS
 
-            # self._map.extend(absolute_coords_2d)  #: Добавление точек на карту
+            self._map.extend(absolute_coords_2d)  #: Добавление точек на карту
 
             for i in range(const.LIDAR_NUM_POINTS):
                 sensor_point = LidarPoint(absolute_coords_2d[i][0],
