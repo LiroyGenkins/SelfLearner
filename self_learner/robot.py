@@ -85,6 +85,7 @@ class Robot:
         Старт работы робота
         """
         # Начальный поворот на цель и установка флага объезда препятствия
+        prev_value = 55
         fuzzy_flag = False
         robot.rotate()
         while 1:
@@ -105,16 +106,19 @@ class Robot:
                 print(self._navigator.target_side)
                 print(decision)
 
-                wheel_coefs = {0: (0.5, 1), 1: (0.75, 1), 2: (0.95, 1),
-                               3: (1, 0.95), 4: (1, 0.75), 5: (1, 0.5)}
+                wheel_coefs = {0: (0.6, 1), 1: (0.7, 1), 2: (0.95, 1),
+                               3: (1, 0.95), 4: (1, 0.7), 5: (1, 0.6)}
 
                 left, right = wheel_coefs[decision.value]
+                if (self._navigator.mid_sector.status != prev_value) or (not mid_sec):
+                    # left, right = 1, 1
+                    left_velocity = left * const.ROBOT_SPEED
+                    right_velocity = right * const.ROBOT_SPEED
+                    fuzzy_flag = True
 
-                # left, right = 1, 1
 
-                left_velocity = left * const.ROBOT_SPEED
-                right_velocity = right * const.ROBOT_SPEED
-                fuzzy_flag = True
+                prev_value = self._navigator.mid_sector.status
+                print(prev_value)
 
             elif fuzzy_flag and not mid_sec:
                 fuzzy_flag = False
