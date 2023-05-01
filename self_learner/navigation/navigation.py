@@ -3,12 +3,13 @@ from enum import IntEnum
 from threading import Thread
 from time import sleep
 
+import numpy as np
 from numpy import NaN
 
 from rdp import rdp
 
 from self_learner import constants as const
-from navigation.computings import *
+from self_learner.navigation.computings import *
 from coppeliasim_api.zmqRemoteApi import RemoteAPIClient
 
 
@@ -126,7 +127,7 @@ class Navigator:
         self._target_handle = self._sim.getObject('/' + const.TARGET_NAME)
 
         #: Инициализация стороны цели
-        self._target_side = self._get_target_position()
+        self._target_angle = self._get_target_position()
 
         #: Инициализация секторов сенсора
         self._left_sector = LidarSector()
@@ -157,8 +158,8 @@ class Navigator:
         return self._right_sector
 
     @property
-    def target_side(self):
-        return self._target_side
+    def target_angle(self):
+        return self._target_angle
 
     def _monitor_sensors(self):
         """Получение данных с датчиков.
@@ -227,7 +228,7 @@ class Navigator:
             self.min_dist = np.nanmin(
                 [self._left_sector.min_dist, self._mid_sector.min_dist, self._right_sector.min_dist])
 
-            self._target_side = self._get_target_position()
+            self._target_angle = self._get_target_position()
 
             sleep(const.SENSORS_UPDATE_PERIOD)
 
@@ -256,7 +257,23 @@ class Navigator:
 
     def _get_target_position(self):
         target_coords = self._sim.getObjectPosition(self._target_handle, self._robot_handle)
-        if target_coords[1] > 0:
-            return TargetSide.left
+        # if target_coords[1] > 0:
+        #     return TargetSide.left
+        # else:
+        #     return TargetSide.right
+        x = target_coords[0]
+        y = target_coords[1]
+
+        if y <= 0:
+            if x >= 0:
+                angle = np.arctan(-y / x)
+            else:
+                angle = np.pi/2 + np.arctan(x / y)
         else:
-            return TargetSide.right
+            if x >= 0:
+                angle = -np.arctan(y / x)
+            else:
+                angle = -np.pi/2 + np.arctan(x / y)
+
+        angle = np.rad2deg(angle)
+        return angle
