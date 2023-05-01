@@ -2,10 +2,26 @@ import math
 import time
 from coppeliasim_api.zmqRemoteApi import RemoteAPIClient
 
+import numpy as np
+
 from navigation.navigation import Navigator
-# from planner.planner import Planner
+from planner.planner import Planner
 
 import constants as const
+
+
+def get_wheel_coefs(turn):
+    if turn < 0:
+        left = 1 / abs(turn)
+        right = 1
+    elif turn > 0:
+        left = 1
+        right = 1 / turn
+    else:
+        left = 1
+        right = 1
+
+    return left, right
 
 
 class Robot:
@@ -20,7 +36,7 @@ class Robot:
         self._right_motor_handle = sim.getObject("./rightMotor")
 
         self._navigator = Navigator()
-        # self._planner = Planner()
+        self._planner = Planner()
 
     # def _set_movement(self, forward_back_vel, left_right_vel, rotation_vel):
     #     """
@@ -85,7 +101,9 @@ class Robot:
         Старт работы робота
         """
         # Начальный поворот на цель и установка флага объезда препятствия
-        prev_value = 55
+        # prev_value = 55
+        left_velocity = const.ROBOT_SPEED
+        right_velocity = const.ROBOT_SPEED
         fuzzy_flag = False
         # robot.rotate()
         while 1:
@@ -94,32 +112,29 @@ class Robot:
                       self._navigator.right_sector.status)
             print(states)
 
-            left_sec, mid_sec, right_sec = states
+            # left_sec, mid_sec, right_sec = states
 
             # if any([mid_sec, left_sec, right_sec]):
-            #     # Нечёткая логика начинается здесь
-            #     print("Нечотко")
-            #     decision = self._planner.make_decision(self._navigator.target_side,
-            #                                            self._navigator.left_sector.status,
-            #                                            self._navigator.mid_sector.status,
-            #                                            self._navigator.right_sector.status)
-            #     print(self._navigator.target_side)
-            #     print(decision)
-            #
-            #     wheel_coefs = {0: (0.6, 1), 1: (0.7, 1), 2: (0.95, 1),
-            #                    3: (1, 0.95), 4: (1, 0.7), 5: (1, 0.6)}
-            #
-            #     left, right = wheel_coefs[decision.value]
-            #     if (self._navigator.mid_sector.status != prev_value) or (not mid_sec):
-            #         # left, right = 1, 1
-            #         left_velocity = left * const.ROBOT_SPEED
-            #         right_velocity = right * const.ROBOT_SPEED
-            #         fuzzy_flag = True
-            #
-            #
-            #     prev_value = self._navigator.mid_sector.status
-            #     print(prev_value)
-            #
+                # Нечёткая логика начинается здесь
+            print("Нечотко")
+            decision = self._planner.make_decision(self._navigator)
+            # print(self._navigator.target_angle)
+            print(decision)
+
+            # wheel_coefs = {0: (0.6, 1), 1: (0.7, 1), 2: (0.95, 1),
+            #                3: (1, 0.95), 4: (1, 0.7), 5: (1, 0.6)}
+
+            left, right = get_wheel_coefs(decision)
+            # if self._navigator.mid_sector.status != prev_value:  # or (not mid_sec):
+                # left, right = 1, 1
+            left_velocity = left * const.ROBOT_SPEED
+            right_velocity = right * const.ROBOT_SPEED
+                # fuzzy_flag = True
+
+
+            prev_value = self._navigator.mid_sector.status
+            print(prev_value)
+
             # elif fuzzy_flag and not mid_sec:
             #     fuzzy_flag = False
             #     robot.rotate()
@@ -128,13 +143,13 @@ class Robot:
             #     print("Чотко")
             #     left_velocity = const.ROBOT_SPEED
             #     right_velocity = const.ROBOT_SPEED
-            #
-            # self._set_movement(left_velocity, right_velocity)
 
-            # distance = self._navigator.min_dist
-            # if (not np.isnan(distance)) and (distance < ROBOT_STOP_DISTANCE):
-            #     self._set_movement(0, 0, 0)
-            #     break
+            self._set_movement(left_velocity, right_velocity)
+
+            distance = self._navigator.min_dist
+            if (not np.isnan(distance)) and (distance < const.ROBOT_STOP_DISTANCE):
+                self._set_movement(0, 0)
+                break
             distance = self.sim.checkDistance(self._robot_handle, self._target_handle, 0)
             if distance[1][6] == 0.0:
                 self._set_movement(0, 0)

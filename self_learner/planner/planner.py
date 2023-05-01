@@ -1,9 +1,9 @@
 import simpful as sf
 
-RULE1 = "IF (MID IS close) AND (LEFT IS close) THEN (TURN IS TURNRIGHT)"
-RULE2 = "IF (MID IS close) AND (RIGHT IS close) THEN (TURN IS TURNLEFT)"
-RULE3 = "IF (TARGETSIDE IS right) THEN (TURN IS TURNRIGHT)"
-RULE4 = "IF (TARGETSIDE IS left) THEN (TURN IS TURNLEFT)"
+RULE1 = "IF (MID IS close) AND (LEFT IS close) THEN (TURN IS TURN_RIGHT)"
+RULE2 = "IF (MID IS close) AND (RIGHT IS close) THEN (TURN IS TURN_LEFT)"
+RULE3 = "IF (TARGET_ANGLE IS right) THEN (TURN IS TURN_RIGHT)"
+RULE4 = "IF (TARGET_ANGLE IS left) THEN (TURN IS TURN_LEFT)"
 
 # term for close distance
 FUZZY_SET1 = sf.FuzzySet(points=[[-1, 1.], [0., 1.], [5, 0]], term="close")
@@ -15,7 +15,7 @@ FUZZY_SET3 = sf.FuzzySet(points=[[-180, 1], [-179, 1.], [1., 0.]], term="left")
 FUZZY_SET4 = sf.FuzzySet(points=[[-1., 0], [179, 1.], [180., 1.]], term="right")
 
 
-class Planer:
+class Planner:
     def __init__(self):
         self._turn = None
         self._fuzzy_system = sf.FuzzySystem()
@@ -23,22 +23,27 @@ class Planer:
         self._fuzzy_system.add_linguistic_variable("LEFT", sf.LinguisticVariable([FUZZY_SET1, FUZZY_SET2]))
         self._fuzzy_system.add_linguistic_variable("MID", sf.LinguisticVariable([FUZZY_SET1, FUZZY_SET2]))
         self._fuzzy_system.add_linguistic_variable("RIGHT", sf.LinguisticVariable([FUZZY_SET1, FUZZY_SET2]))
-        self._fuzzy_system.add_linguistic_variable("TARGETSIDE", sf.LinguisticVariable([FUZZY_SET3, FUZZY_SET4]))
+        self._fuzzy_system.add_linguistic_variable("TARGET_ANGLE", sf.LinguisticVariable([FUZZY_SET3, FUZZY_SET4]))
 
         # Output value.
-        self._fuzzy_system.set_crisp_output_value("TURNLEFT", -5)
-        self._fuzzy_system.set_crisp_output_value("TURNRIGHT", 5)
+        self._fuzzy_system.set_crisp_output_value("TURN_LEFT", -5)
+        self._fuzzy_system.set_crisp_output_value("TURN_RIGHT", 5)
 
         self._fuzzy_system.add_rules([RULE1, RULE2, RULE3, RULE4])
 
-    def make_decision(self, target_side, left, mid, right):
-        self._fuzzy_system.set_variable("LEFT", left)
-        self._fuzzy_system.set_variable("MID", mid)
-        self._fuzzy_system.set_variable("RIGHT", right)
-        self._fuzzy_system.set_variable("TARGETSIDE", target_side)
+    def make_decision(self, navigator):
+        target_angle = navigator.target_angle
+        left_dist = navigator.left_sector.min_dist
+        mid_dist = navigator.mid_sector.min_dist
+        right_dist = navigator.right_sector.min_dist
 
-        self._turn = self._fuzzy_system.Sugeno_inference(['TURN'])
-        return self._fuzzy_system.Sugeno_inference(['TURN'])
+        self._fuzzy_system.set_variable("LEFT", left_dist)
+        self._fuzzy_system.set_variable("MID", mid_dist)
+        self._fuzzy_system.set_variable("RIGHT", right_dist)
+        self._fuzzy_system.set_variable("TARGET_ANGLE", target_angle)
+
+        self._turn = self._fuzzy_system.Sugeno_inference()['TURN']
+        return self._turn
 
 
 # from enum import IntEnum
