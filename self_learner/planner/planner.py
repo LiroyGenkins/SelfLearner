@@ -1,3 +1,46 @@
+import simpful as sf
+
+RULE1 = "IF (MID IS close) AND (LEFT IS close) THEN (TURN IS TURNRIGHT)"
+RULE2 = "IF (MID IS close) AND (RIGHT IS close) THEN (TURN IS TURNLEFT)"
+RULE3 = "IF (TARGETSIDE IS right) THEN (TURN IS TURNRIGHT)"
+RULE4 = "IF (TARGETSIDE IS left) THEN (TURN IS TURNLEFT)"
+
+# term for close distance
+FUZZY_SET1 = sf.FuzzySet(points=[[-1, 1.], [0., 1.], [5, 0]], term="close")
+# term for far dist
+FUZZY_SET2 = sf.FuzzySet(points=[[0., 0], [5, 1.], [99., 1.]], term="far")
+# term for target is in left sec
+FUZZY_SET3 = sf.FuzzySet(points=[[-180, 1], [-179, 1.], [1., 0.]], term="left")
+# term for target is in RIGHT sec
+FUZZY_SET4 = sf.FuzzySet(points=[[-1., 0], [179, 1.], [180., 1.]], term="right")
+
+
+class Planer:
+    def __init__(self):
+        self._turn = None
+        self._fuzzy_system = sf.FuzzySystem()
+
+        self._fuzzy_system.add_linguistic_variable("LEFT", sf.LinguisticVariable([FUZZY_SET1, FUZZY_SET2]))
+        self._fuzzy_system.add_linguistic_variable("MID", sf.LinguisticVariable([FUZZY_SET1, FUZZY_SET2]))
+        self._fuzzy_system.add_linguistic_variable("RIGHT", sf.LinguisticVariable([FUZZY_SET1, FUZZY_SET2]))
+        self._fuzzy_system.add_linguistic_variable("TARGETSIDE", sf.LinguisticVariable([FUZZY_SET3, FUZZY_SET4]))
+
+        # Output value.
+        self._fuzzy_system.set_crisp_output_value("TURNLEFT", -5)
+        self._fuzzy_system.set_crisp_output_value("TURNRIGHT", 5)
+
+        self._fuzzy_system.add_rules([RULE1, RULE2, RULE3, RULE4])
+
+    def make_decision(self, target_side, left, mid, right):
+        self._fuzzy_system.set_variable("LEFT", left)
+        self._fuzzy_system.set_variable("MID", mid)
+        self._fuzzy_system.set_variable("RIGHT", right)
+        self._fuzzy_system.set_variable("TARGETSIDE", target_side)
+
+        self._turn = self._fuzzy_system.Sugeno_inference(['TURN'])
+        return self._fuzzy_system.Sugeno_inference(['TURN'])
+
+
 # from enum import IntEnum
 # from pathlib import Path
 #
@@ -52,71 +95,3 @@
 #         decision = self._rules[situation]
 #         turning_angle = self._decision_dict[decision]
 #         return turning_angle
-
-import simpful as sf
-
-RULE1 = "IF (MID IS close) AND (LEFT IS close) THEN (TURN IS TURNRIGHT)"
-RULE2 = "IF (MID IS close) AND (RIGHT IS close) THEN (TURN IS TURNLEFT)"
-RULE3 = "IF (TARGETSIDE IS right) THEN (TURN IS TURNRIGHT)"
-RULE4 = "IF (TARGETSIDE IS left) THEN (TURN IS TURNLEFT)"
-
-# term for close distance
-FUZZY_SET1 = sf.FuzzySet(points=[[-1, 1.], [0., 1.], [5, 0]], term="close")
-# term for far dist
-FUZZY_SET2 = sf.FuzzySet(points=[[0., 0], [5, 1.], [99., 1.]], term="far")
-# term for target is in left sec
-FUZZY_SET3 = sf.FuzzySet(points=[[-180, 1], [-179, 1.], [1., 0.]], term="left")
-# term for target is in RIGHT sec
-FUZZY_SET4 = sf.FuzzySet(points=[[-1., 0], [179, 1.], [180., 1.]], term="right")
-
-
-class Planer:
-    def __init__(self):
-        self._fuzzy_system = sf.FuzzySystem()
-
-        self._fuzzy_system.add_linguistic_variable("LEFT", sf.LinguisticVariable([FUZZY_SET1, FUZZY_SET2]))
-        self._fuzzy_system.add_linguistic_variable("MID", sf.LinguisticVariable([FUZZY_SET1, FUZZY_SET2]))
-        self._fuzzy_system.add_linguistic_variable("RIGHT", sf.LinguisticVariable([FUZZY_SET1, FUZZY_SET2]))
-        self._fuzzy_system.add_linguistic_variable("TARGETSIDE", sf.LinguisticVariable([FUZZY_SET3, FUZZY_SET4]))
-
-        # Output value.
-        self._fuzzy_system.set_crisp_output_value("TURNLEFT", -5)
-        self._fuzzy_system.set_crisp_output_value("TURNRIGHT", 5)
-
-
-def make_solution(leftsec, midsec, rightsec, targside):
-    FS = sf.FuzzySystem()
-    # Define a linguistic variable.
-    # term for close distance
-    S_1 = sf.FuzzySet(points=[[-1, 1.], [0., 1.], [5, 0]], term="low")
-    # term for high dist
-    S_2 = sf.FuzzySet(points=[[0., 0], [5, 1.], [99., 1.]], term="high")
-    # term for target is in left sec
-    S_3 = sf.FuzzySet(points=[[-180, 1], [-179, 1.], [1., 0.]], term="left")
-    # term for target is in RIGHT sec
-    S_4 = sf.FuzzySet(points=[[-1., 0], [179, 1.], [180., 1.]], term="right")
-    FS.add_linguistic_variable("LEFT", sf.LinguisticVariable([S_1, S_2]))
-    FS.add_linguistic_variable("MID", sf.LinguisticVariable([S_1, S_2]))
-    FS.add_linguistic_variable("RIGHT", sf.LinguisticVariable([S_1, S_2]))
-    FS.add_linguistic_variable("TARGETSIDE", sf.LinguisticVariable([S_3, S_4]))
-
-    # Output value.
-    FS.set_crisp_output_value("TURNLEFT", -5)
-    FS.set_crisp_output_value("TURNRIGHT", 5)
-
-    # Here are the rules for wall smashing    .
-    RULE1 = "IF (MID IS low) AND (LEFT IS low) THEN (TURN IS TURNRIGHT)"
-    RULE2 = "IF (MID IS low) AND (RIGHT IS low) THEN (TURN IS TURNLEFT)"
-    RULE3 = "IF (TARGETSIDE IS right) THEN (TURN IS TURNRIGHT)"
-    RULE4 = "IF (TARGETSIDE IS left) THEN (TURN IS TURNLEFT)"
-    FS.add_rules([RULE1, RULE2, RULE3, RULE4])
-
-    # Set antecedents values, perform Sugeno inference and print output values.
-    FS.set_variable("LEFT", leftsec)
-    FS.set_variable("MID", midsec)
-    FS.set_variable("RIGHT", rightsec)
-    FS.set_variable("TARGETSIDE", targside)
-    return (FS.Sugeno_inference(['TURN']))
-
-
-print(make_solution(4, 1, 1, -10))
