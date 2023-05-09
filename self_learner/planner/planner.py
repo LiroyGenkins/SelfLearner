@@ -4,7 +4,8 @@ RULE1 = "IF (MID IS close) AND (LEFT IS close) THEN (TURN IS TURN_RIGHT)"
 RULE2 = "IF (MID IS close) AND (RIGHT IS close) THEN (TURN IS TURN_LEFT)"
 RULE3 = "IF (TARGET_ANGLE IS right) THEN (TURN IS TURN_RIGHT)"
 RULE4 = "IF (TARGET_ANGLE IS left) THEN (TURN IS TURN_LEFT)"
-
+RULE5 = "IF (LEFT IS close) AND (MID IS far) THEN (TURN IS SMALL_TURN_RIGHT)"
+RULE6 = "IF (RIGHT IS close) AND (MID IS far) THEN (TURN IS SMALL_TURN_LEFT)"
 # term for close distance
 FUZZY_SET1 = sf.FuzzySet(points=[[-1, 1.], [0., 1.], [5, 0]], term="close")
 # term for far dist
@@ -28,8 +29,9 @@ class Planner:
         # Output value.
         self._fuzzy_system.set_crisp_output_value("TURN_LEFT", -5)
         self._fuzzy_system.set_crisp_output_value("TURN_RIGHT", 5)
-
-        self._fuzzy_system.add_rules([RULE1, RULE2, RULE3, RULE4])
+        self._fuzzy_system.set_crisp_output_value("SMALL_TURN_RIGHT", 0.5)
+        self._fuzzy_system.set_crisp_output_value("SMALL_TURN_LEFT", -0.5)
+        self._fuzzy_system.add_rules([RULE1, RULE2, RULE3, RULE4,RULE5,RULE6])
 
     def make_decision(self, navigator):
         target_angle = navigator.target_angle
@@ -44,7 +46,6 @@ class Planner:
 
         self._turn = self._fuzzy_system.Sugeno_inference()['TURN']
         return self._turn
-
 
 # from enum import IntEnum
 # from pathlib import Path
