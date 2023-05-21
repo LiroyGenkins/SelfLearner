@@ -26,6 +26,7 @@ def get_wheel_coefs(turn):
 
 class Robot:
     def __init__(self, sim, robot_name):
+        self.target_distance = None
         self._start_time = time.time()
         self.name = robot_name
         self.sim = sim
@@ -108,6 +109,7 @@ class Robot:
         fuzzy_flag = False
         # robot.rotate()
         while 1:
+            self.target_distance = self.sim.checkDistance(self.robot_handle, self._target_handle, 0)[1][6]
             states = (self._navigator.left_sector.status,
                       self._navigator.mid_sector.status,
                       self._navigator.right_sector.status)
@@ -152,8 +154,7 @@ class Robot:
             if (not np.isnan(distance)) and (distance < const.ROBOT_STOP_DISTANCE):
                 self._set_movement(0, 0)
                 break
-            distance = self.sim.checkDistance(self.robot_handle, self._target_handle, 0)
-            if distance[1][6] == 0.0:
+            if target_distance[1][6] == 0.0:
                 self._set_movement(0, 0)
                 break
             if end - start > const.CREATURE_LIFETIME:
@@ -184,6 +185,7 @@ if __name__ == "__main__":
 
         end = time.time() - start
         print(end)
+        print(robot.target_distance)
 
         robot.sim.setObjectOrientation(robot.robot_handle, -1, start_orientation)
         robot.sim.setObjectPosition(robot.robot_handle, -1, start_position)
