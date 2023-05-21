@@ -30,7 +30,7 @@ class Robot:
         self.name = robot_name
         self.sim = sim
 
-        self._robot_handle = sim.getObject(f"./{const.ROBOT_NAME}")
+        self.robot_handle = sim.getObject(f"./{const.ROBOT_NAME}")
         self._target_handle = sim.getObject("./Goal")
         self._left_motor_handle = sim.getObject("./leftMotor")
         self._right_motor_handle = sim.getObject("./rightMotor")
@@ -70,7 +70,7 @@ class Robot:
         self.sim.setJointTargetVelocity(self._right_motor_handle, 0)
 
         while 1:
-            relative_position = sim.getObjectPosition(self._target_handle, self._robot_handle)
+            relative_position = sim.getObjectPosition(self._target_handle, self.robot_handle)
             angle = math.atan2(relative_position[1], relative_position[0]) * 180 / math.pi
             print(angle)
             if abs(angle) < 0.3:
@@ -89,7 +89,7 @@ class Robot:
         self.sim.setJointTargetVelocity(self._left_motor_handle, 1)
         self.sim.setJointTargetVelocity(self._right_motor_handle, 1)
         while 1:
-            distance = self.sim.checkDistance(self._robot_handle, self._target_handle, 0)
+            distance = self.sim.checkDistance(self.robot_handle, self._target_handle, 0)
             print(distance)
             if distance[1][6] == 0.0:
                 self.sim.setJointTargetVelocity(self._left_motor_handle, 0)
@@ -100,6 +100,7 @@ class Robot:
         """
         Старт работы робота
         """
+
         # Начальный поворот на цель и установка флага объезда препятствия
         # prev_value = 55
         left_velocity = const.ROBOT_SPEED
@@ -147,13 +148,22 @@ class Robot:
             self._set_movement(left_velocity, right_velocity)
 
             distance = self._navigator.min_dist
+            end = time.time()
             if (not np.isnan(distance)) and (distance < const.ROBOT_STOP_DISTANCE):
                 self._set_movement(0, 0)
                 break
-            distance = self.sim.checkDistance(self._robot_handle, self._target_handle, 0)
+            distance = self.sim.checkDistance(self.robot_handle, self._target_handle, 0)
             if distance[1][6] == 0.0:
                 self._set_movement(0, 0)
                 break
+            if end - start > const.CREATURE_LIFETIME:
+                self._set_movement(0, 0)
+                break
+
+        print(distance)
+        self.sim.setObjectOrientation(self.robot_handle, -1, start_orientation)
+        self.sim.setObjectPosition(self.robot_handle, -1, start_position)
+
 
 
 if __name__ == "__main__":
@@ -162,4 +172,22 @@ if __name__ == "__main__":
     sim.startSimulation()
 
     robot = Robot(sim, const.ROBOT_NAME)
-    robot.start()
+
+    start_orientation = robot.sim.getObjectOrientation(robot.robot_handle, -1)
+    start_position = robot.sim.getObjectPosition(robot.robot_handle, -1)
+
+    # Генетический алгоритм:
+    for i in range(const.NUM_CREATURES):
+        start = time.time()
+
+        robot.start()
+
+        end = time.time() - start
+        print(end)
+
+        robot.sim.setObjectOrientation(robot.robot_handle, -1, start_orientation)
+        robot.sim.setObjectPosition(robot.robot_handle, -1, start_position)
+
+
+
+
