@@ -154,6 +154,7 @@ class Robot:
             if (not np.isnan(distance)) and (distance < const.ROBOT_STOP_DISTANCE):
                 self._set_movement(0, 0)
                 break
+            target_distance = self.sim.checkDistance(self.robot_handle, self._target_handle, 0)
             if target_distance[1][6] == 0.0:
                 self._set_movement(0, 0)
                 break
@@ -189,6 +190,8 @@ if __name__ == "__main__":
 
         robot.sim.setObjectOrientation(robot.robot_handle, -1, start_orientation)
         robot.sim.setObjectPosition(robot.robot_handle, -1, start_position)
+
+    sim.stopSimulation()
 
 
 
