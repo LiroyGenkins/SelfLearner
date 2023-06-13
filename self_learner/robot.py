@@ -5,6 +5,7 @@ from coppeliasim_api.zmqRemoteApi import RemoteAPIClient
 import numpy as np
 
 from navigation.navigation import Navigator
+import planner
 from planner.planner import Planner
 
 import constants as const
@@ -30,6 +31,9 @@ class Robot:
         self._start_time = time.time()
         self.name = robot_name
         self.sim = sim
+
+        self.sum_rot = 0
+        self.prev_orientation = robot.sim.getObjectOrientation(robot.robot_handle, -1)
 
         self.robot_handle = sim.getObject(f"./{const.ROBOT_NAME}")
         self._target_handle = sim.getObject("./Goal")
@@ -85,6 +89,7 @@ class Robot:
                 self.sim.setJointTargetVelocity(self._right_motor_handle, -1)
             self.sim.setJointTargetVelocity(self._left_motor_handle, 0)
             self.sim.setJointTargetVelocity(self._right_motor_handle, 0)
+
 
     def move(self):
         self.sim.setJointTargetVelocity(self._left_motor_handle, 1)
@@ -149,6 +154,9 @@ class Robot:
 
             self._set_movement(left_velocity, right_velocity)
 
+            self.sum_rot += robot.sim.getObjectOrientation(robot.robot_handle, -1) - self.prev_orientation
+            self.prev_orientation = robot.sim.getObjectOrientation(robot.robot_handle, -1)
+
             distance = self._navigator.min_dist
             end = time.time()
             if (not np.isnan(distance)) and (distance < const.ROBOT_STOP_DISTANCE):
@@ -180,11 +188,20 @@ if __name__ == "__main__":
 
     # Генетический алгоритм:
     if training:
-        config = []
+        config = [(0, robot.planner)]
+        start_x, start_y = start_position
+        target_x, target_y = robot._navigator._sim.getObjectPosition(robot._navigator._target_handle,
+                                                                     robot._navigator._robot_handle)
+        start_delta = ((target_x - start_x) ** 2 + (target_y - start_y) ** 2) ** 0.5
         for i in range(const.NUM_CREATURES):
             robot.start()
 
             print(robot.target_distance)
+
+            F = planner.survival_function(robot.sum_rot, start_delta, robot.target_distance)    # Вычисление полезности
+            robot.planner = robot.planner.selection(config[-1], F)  # Отбор
+
+            print(F)
 
             robot.planner.mutate()  # Мутация
             robot.planner.crossover(config[i])  # Скрещивание

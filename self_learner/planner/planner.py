@@ -17,6 +17,9 @@ FUZZY_SET3 = sf.FuzzySet(points=[[-180, 0.4], [-179, 0.4], [1., 0.]], term="left
 FUZZY_SET4 = sf.FuzzySet(points=[[-1., 0], [179, 0.4], [180., 0.4]], term="right")
 
 
+def survival_function(Q, d_xk, d_xn):
+    return 1 / (1 + abs(Q) * d_xk / d_xn * 100)
+
 class Planner:
     def __init__(self, training=False):
         self._turn = None
@@ -50,6 +53,13 @@ class Planner:
 
     def crossover(self, other):
         ...
+
+
+    def selection(self, prev_one, F):
+        if prev_one[0] > F:
+            return self
+        return prev_one[1]
+
 
     def make_decision(self, navigator):
         target_angle = navigator.target_angle
