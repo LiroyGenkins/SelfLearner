@@ -1,4 +1,5 @@
 import simpful as sf
+import random
 
 RULE1 = "IF (MID IS close) AND (LEFT IS close) THEN (TURN IS TURN_RIGHT)"
 RULE2 = "IF (MID IS close) AND (RIGHT IS close) THEN (TURN IS TURN_LEFT)"
@@ -7,18 +8,27 @@ RULE4 = "IF (TARGET_ANGLE IS left) THEN (TURN IS TURN_LEFT)"
 RULE5 = "IF (LEFT IS close) AND (MID IS far) THEN (TURN IS SMALL_TURN_RIGHT)"
 RULE6 = "IF (RIGHT IS close) AND (MID IS far) THEN (TURN IS SMALL_TURN_LEFT)"
 # term for close distance
-FUZZY_SET1 = sf.FuzzySet(points=[[-1, 1.], [0., 1.], [5, 0]], term="close")
+FUZZY_SET1 = sf.FuzzySet(points=[[-1, 1.], [0., 1.], [1, 0]], term="close")
 # term for far dist
 FUZZY_SET2 = sf.FuzzySet(points=[[0., 0], [5, 1.], [99., 1.]], term="far")
 # term for target is in left sec
-FUZZY_SET3 = sf.FuzzySet(points=[[-180, 1], [-179, 1.], [1., 0.]], term="left")
+FUZZY_SET3 = sf.FuzzySet(points=[[-180, 0.4], [-179, 0.4], [1., 0.]], term="left")
 # term for target is in RIGHT sec
-FUZZY_SET4 = sf.FuzzySet(points=[[-1., 0], [179, 1.], [180., 1.]], term="right")
+FUZZY_SET4 = sf.FuzzySet(points=[[-1., 0], [179, 0.4], [180., 0.4]], term="right")
 
 
 class Planner:
-    def __init__(self):
+    def __init__(self, training=False):
         self._turn = None
+
+        if training:
+            self.turn_edge = random.random() * 10
+            self.small_turn_edge = random.random() * 3
+        else:
+            self.turn_edge = 5
+            self.small_turn_edge = 0.5
+
+        # Create fuzzy system.
         self._fuzzy_system = sf.FuzzySystem()
 
         self._fuzzy_system.add_linguistic_variable("LEFT", sf.LinguisticVariable([FUZZY_SET1, FUZZY_SET2]))
@@ -27,11 +37,19 @@ class Planner:
         self._fuzzy_system.add_linguistic_variable("TARGET_ANGLE", sf.LinguisticVariable([FUZZY_SET3, FUZZY_SET4]))
 
         # Output value.
-        self._fuzzy_system.set_crisp_output_value("TURN_LEFT", -5)
-        self._fuzzy_system.set_crisp_output_value("TURN_RIGHT", 5)
-        self._fuzzy_system.set_crisp_output_value("SMALL_TURN_RIGHT", 0.5)
-        self._fuzzy_system.set_crisp_output_value("SMALL_TURN_LEFT", -0.5)
-        self._fuzzy_system.add_rules([RULE1, RULE2, RULE3, RULE4,RULE5,RULE6])
+        self._fuzzy_system.set_crisp_output_value("TURN_LEFT", -self.turn_edge)
+        self._fuzzy_system.set_crisp_output_value("TURN_RIGHT", self.turn_edge)
+        self._fuzzy_system.set_crisp_output_value("SMALL_TURN_RIGHT", self.small_turn_edge)
+        self._fuzzy_system.set_crisp_output_value("SMALL_TURN_LEFT", -self.small_turn_edge)
+        self._fuzzy_system.add_rules([RULE1, RULE2, RULE3, RULE4, RULE5, RULE6])
+
+
+    def mutate(self):
+        ...
+
+
+    def crossover(self, other):
+        ...
 
     def make_decision(self, navigator):
         target_angle = navigator.target_angle

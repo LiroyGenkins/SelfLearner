@@ -25,7 +25,7 @@ def get_wheel_coefs(turn):
 
 
 class Robot:
-    def __init__(self, sim, robot_name):
+    def __init__(self, sim, robot_name, training=False):
         self.target_distance = None
         self._start_time = time.time()
         self.name = robot_name
@@ -37,7 +37,7 @@ class Robot:
         self._right_motor_handle = sim.getObject("./rightMotor")
 
         self._navigator = Navigator()
-        self._planner = Planner()
+        self.planner = Planner()
 
     # def _set_movement(self, forward_back_vel, left_right_vel, rotation_vel):
     #     """
@@ -101,6 +101,7 @@ class Robot:
         """
         Старт работы робота
         """
+        start = time.time()
 
         # Начальный поворот на цель и установка флага объезда препятствия
         # prev_value = 55
@@ -118,9 +119,9 @@ class Robot:
             # left_sec, mid_sec, right_sec = states
 
             # if any([mid_sec, left_sec, right_sec]):
-                # Нечёткая логика начинается здесь
+            # Нечёткая логика начинается здесь
             print("Нечотко")
-            decision = self._planner.make_decision(self._navigator)
+            decision = self.planner.make_decision(self._navigator)
             # print(self._navigator.target_angle)
             print(decision)
 
@@ -129,11 +130,10 @@ class Robot:
 
             left, right = get_wheel_coefs(decision)
             # if self._navigator.mid_sector.status != prev_value:  # or (not mid_sec):
-                # left, right = 1, 1
+            # left, right = 1, 1
             left_velocity = left * const.ROBOT_SPEED
             right_velocity = right * const.ROBOT_SPEED
-                # fuzzy_flag = True
-
+            # fuzzy_flag = True
 
             prev_value = self._navigator.mid_sector.status
             print(prev_value)
@@ -167,32 +167,31 @@ class Robot:
         self.sim.setObjectPosition(self.robot_handle, -1, start_position)
 
 
-
 if __name__ == "__main__":
+    training = True
     client = RemoteAPIClient()
     sim = client.getObject('sim')
     sim.startSimulation()
 
-    robot = Robot(sim, const.ROBOT_NAME)
+    robot = Robot(sim, const.ROBOT_NAME, training=training)
 
     start_orientation = robot.sim.getObjectOrientation(robot.robot_handle, -1)
     start_position = robot.sim.getObjectPosition(robot.robot_handle, -1)
 
     # Генетический алгоритм:
-    for i in range(const.NUM_CREATURES):
-        start = time.time()
+    if training:
+        config = []
+        for i in range(const.NUM_CREATURES):
+            robot.start()
 
+            print(robot.target_distance)
+
+            robot.planner.mutate()  # Мутация
+            robot.planner.crossover(config[i])  # Скрещивание
+
+            robot.sim.setObjectOrientation(robot.robot_handle, -1, start_orientation)
+            robot.sim.setObjectPosition(robot.robot_handle, -1, start_position)
+    else:
         robot.start()
 
-        end = time.time() - start
-        print(end)
-        print(robot.target_distance)
-
-        robot.sim.setObjectOrientation(robot.robot_handle, -1, start_orientation)
-        robot.sim.setObjectPosition(robot.robot_handle, -1, start_position)
-
     sim.stopSimulation()
-
-
-
-
