@@ -47,8 +47,10 @@ class Planner:
         self._fuzzy_system.add_rules([RULE1, RULE2, RULE3, RULE4, RULE5, RULE6])
 
 
-    def mutate(self):
-        ...
+    def mutate(self,mutation_force):
+        self.small_turn_edge= (self.small_turn_edge+ random.random()*mutation_force*self.small_turn_edge*2 - self.small_turn_edge*mutation_force)
+        self.turn_edge = (self.turn_edge + random.random() * mutation_force * self.turn_edge * 2 - self.turn_edge * mutation_force)
+        print(self.turn_edge,self.small_turn_edge)
 
 
     def crossover(self, other):

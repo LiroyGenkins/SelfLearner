@@ -173,7 +173,7 @@ class Navigator:
             right_sector_points = []
 
             result = bool(self._sim.getInt32Signal("r"))
-            print(result)
+            #print(result)
 
             if result:  #: Есть ли препятствия в области видимости лидара
                 point_abs_signal = self._sim.getStringSignal("pointDataAbs")

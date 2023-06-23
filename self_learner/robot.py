@@ -78,7 +78,7 @@ class Robot:
         while 1:
             relative_position = sim.getObjectPosition(self._target_handle, self.robot_handle)
             angle = math.atan2(relative_position[1], relative_position[0]) * 180 / math.pi
-            print(angle)
+            #print(angle)
             if abs(angle) < 0.3:
                 break
 
@@ -96,7 +96,7 @@ class Robot:
         self.sim.setJointTargetVelocity(self._right_motor_handle, 1)
         while 1:
             distance = self.sim.checkDistance(self.robot_handle, self._target_handle, 0)
-            print(distance)
+            #print(distance)
             if distance[1][6] == 0.0:
                 self.sim.setJointTargetVelocity(self._left_motor_handle, 0)
                 self.sim.setJointTargetVelocity(self._right_motor_handle, 0)
@@ -119,16 +119,16 @@ class Robot:
             states = (self._navigator.left_sector.status,
                       self._navigator.mid_sector.status,
                       self._navigator.right_sector.status)
-            print(states)
+            #print(states)
 
             # left_sec, mid_sec, right_sec = states
 
             # if any([mid_sec, left_sec, right_sec]):
             # Нечёткая логика начинается здесь
-            print("Нечотко")
+            #print("Нечотко")
             decision = self.planner.make_decision(self._navigator)
             # print(self._navigator.target_angle)
-            print(decision)
+            #print(decision)
 
             # wheel_coefs = {0: (0.6, 1), 1: (0.7, 1), 2: (0.95, 1),
             #                3: (1, 0.95), 4: (1, 0.7), 5: (1, 0.6)}
@@ -141,7 +141,7 @@ class Robot:
             # fuzzy_flag = True
 
             prev_value = self._navigator.mid_sector.status
-            print(prev_value)
+            #print(prev_value)
 
             # elif fuzzy_flag and not mid_sec:
             #     fuzzy_flag = False
@@ -170,7 +170,7 @@ class Robot:
                 self._set_movement(0, 0)
                 break
 
-        print(distance)
+        #print(distance)
         self.sim.setObjectOrientation(self.robot_handle, -1, start_orientation)
         self.sim.setObjectPosition(self.robot_handle, -1, start_position)
 
@@ -196,15 +196,15 @@ if __name__ == "__main__":
         for i in range(const.NUM_CREATURES):
             robot.start()
 
-            print(robot.target_distance)
+            #print(robot.target_distance)
 
-            F = planner.survival_function(robot.sum_rot, start_delta, robot.target_distance)  # Вычисление полезности
-            robot.planner = robot.planner.selection(config[-1], F)  # Отбор
+            #F = planner.survival_function(robot.sum_rot, start_delta, robot.target_distance)  # Вычисление полезности
+            #robot.planner = robot.planner.selection(config[-1], F)  # Отбор
 
-            print(F)
+            #print(F)
 
-            robot.planner.mutate()  # Мутация
-            robot.planner.crossover(config[i])  # Скрещивание
+            robot.planner.mutate(0.25)  # Мутация
+            #robot.planner.crossover(config[i])  # Скрещивание
 
             robot.sim.setObjectOrientation(robot.robot_handle, -1, start_orientation)
             robot.sim.setObjectPosition(robot.robot_handle, -1, start_position)
