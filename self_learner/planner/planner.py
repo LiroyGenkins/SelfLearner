@@ -20,6 +20,7 @@ FUZZY_SET4 = sf.FuzzySet(points=[[-1., 0], [179, 0.4], [180., 0.4]], term="right
 def survival_function(Q, d_xk, d_xn):
     return 1 / (1 + abs(Q) * d_xk / d_xn * 100)
 
+
 class Planner:
     def __init__(self, training=False):
         self._turn = None
@@ -29,7 +30,7 @@ class Planner:
             self.small_turn_edge = random.random() * 3
         else:
             self.turn_edge = 5
-            self.small_turn_edge = 0.5
+            self.small_turn_edge = 0.15
 
         # Create fuzzy system.
         self._fuzzy_system = sf.FuzzySystem()
@@ -46,26 +47,25 @@ class Planner:
         self._fuzzy_system.set_crisp_output_value("SMALL_TURN_LEFT", -self.small_turn_edge)
         self._fuzzy_system.add_rules([RULE1, RULE2, RULE3, RULE4, RULE5, RULE6])
 
-
-    def mutate(self,mutation_force):
-        self.small_turn_edge= (self.small_turn_edge+ random.random()*mutation_force*self.small_turn_edge*2 - self.small_turn_edge*mutation_force)
-        self.turn_edge = (self.turn_edge + random.random() * mutation_force * self.turn_edge * 2 - self.turn_edge * mutation_force)
-        print(self.turn_edge,self.small_turn_edge)
-
+    def mutate(self, mutation_force):
+        self.small_turn_edge = (
+                    self.small_turn_edge + random.random() * mutation_force * self.small_turn_edge * 2 - self.small_turn_edge * mutation_force)
+        self.turn_edge = (
+                    self.turn_edge + random.random() * mutation_force * self.turn_edge * 2 - self.turn_edge * mutation_force)
+        print(self.turn_edge, self.small_turn_edge)
 
     def crossover(self, other):
         ...
 
-
-    def survival_function(self,rot,delta,targ_dist):
-        return  1/(1+rot*targ_dist/delta)
-
+    def survival_function(self, rot, delta, targ_dist):
+        return 1 / (1 + rot + (targ_dist / delta) * 100)
 
     def selection(self, prev_one, F):
-        if prev_one[0] > F:
-            return self
-        return prev_one[1]
-
+        if F > prev_one[0]:
+            print("max", F)
+            return F, self
+        print("max", prev_one[0])
+        return prev_one
 
     def make_decision(self, navigator):
         target_angle = navigator.target_angle

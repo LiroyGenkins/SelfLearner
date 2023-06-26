@@ -62,7 +62,7 @@ class LidarSector:
         if len(self._points) > 0:
             min_dist = np.nanmin([p.dist for p in self._points])
         else:
-            min_dist = 0;
+            min_dist = 0
 
         # TODO: Заменить на дефаззификацию(?)
         if np.isnan(min_dist):
