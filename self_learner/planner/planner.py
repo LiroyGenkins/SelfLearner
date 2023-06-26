@@ -58,7 +58,7 @@ class Planner:
 
 
     def survival_function(self,rot,delta,targ_dist):
-        return  1-targ_dist
+        return  1/(1+rot*targ_dist/delta)
 
 
     def selection(self, prev_one, F):
