@@ -198,12 +198,12 @@ if __name__ == "__main__":
 
             #print(robot.target_distance)
 
-            #F = planner.survival_function(robot.sum_rot, start_delta, robot.target_distance)  # Вычисление полезности
-            #robot.planner = robot.planner.selection(config[-1], F)  # Отбор
+            F = robot.planner.survival_function(robot.sum_rot, start_delta, robot.target_distance)  # Вычисление полезности
+            robot.planner = robot.planner.selection(config[-1], F)  # Отбор
 
-            #print(F)
+            print(F)
 
-            robot.planner.mutate(0.25)  # Мутация
+            robot.planner.mutate(0.05)  # Мутация
             #robot.planner.crossover(config[i])  # Скрещивание
 
             robot.sim.setObjectOrientation(robot.robot_handle, -1, start_orientation)

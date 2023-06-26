@@ -57,6 +57,10 @@ class Planner:
         ...
 
 
+    def survival_function(self,rot,delta,targ_dist):
+        return  1-targ_dist
+
+
     def selection(self, prev_one, F):
         if prev_one[0] > F:
             return self
